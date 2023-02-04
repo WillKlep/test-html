@@ -14,7 +14,7 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 
 app.post('/',function(req,res){
-   var html = 'Hello:' + "From Intellaundry";
+   var html = "You were able to post";
    res.send(html);
    console.log(html);
 });
