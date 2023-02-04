@@ -1,10 +1,22 @@
-const express = require("express");
-const app = express();
+const port = 3000;
 
-app.get("/", (req, res) => {
-	res.send("Hello from Intellaundry")
-})
+var express = require('express'),
+    app = express(),
+    server = require('http').createServer(app);
+var bodyParser = require('body-parser');
 
-app.listen(3000, () => {
-	console.log("Serving on port 3000")
-})
+app.use(express.static(__dirname + '/public'));
+
+app.use(bodyParser.urlencoded({
+   extended: true;
+}));
+
+app.use(bodyParser.json());
+
+app.post('/',function(req,res){
+   var html = 'Hello:' + "From Intellaundry";
+   res.send(html);
+   console.log(html);
+});
+
+server.listen(port);
