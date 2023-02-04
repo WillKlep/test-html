@@ -13,6 +13,10 @@ app.use(bodyParser.urlencoded({
 
 app.use(bodyParser.json());
 
+app.get("/", (req, res) => {
+	res.send("Hello from INTELLAUNDRY")
+})
+
 app.post('/',function(req,res){
    var html = "You were able to post";
    res.send(html);
