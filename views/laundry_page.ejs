@@ -5,15 +5,17 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><!-- Bootstrap CSS-->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
-    <!--local CSS-->
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous"> -->
+    <!--bootstrap CSS-->
+    <link rel="stylesheet" href="/css/custom.css" />
+    <script src="/js/bootstrap.bundle.min.js"></script>
     <!--link(rel='stylesheet' href='styles.css')-->
     <!--Outlined and filled google icons-->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <title><%=title%></title>
 </head><!-- Navbar-->
-<nav class="navbar navbar-expand-xxl bg-dark navbar-dark justify-content-center">
+<nav class="navbar navbar-expand-xxl bg-light-orange navbar-dark justify-content-center">
     <class class="navbar-brand">[Selected location] Laundry</class>
     <div class="dropdown"><button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Laundry Rooms</button>
         <ul class="dropdown-menu">
@@ -60,14 +62,15 @@
         </div>
     </div>
 </section><!-- bottom of page-->
-<navbar class="navbar navbar-static-bottom text-center justify-content-center bg-warning p-3">
+<navbar class="navbar navbar-static-bottom text-center justify-content-center bg-light-orange p-3">
     <div class="navbar-brand">
         <p class="fs-5">Problem with the machines? Report it here!</p><a class="btn btn-outline-primary" href="https://www.cscsw.com/request-service/" role="button">Report a Machine</a>
     </div>
 </navbar><!-- Optional JavaScript-->
 <!-- jQuery first, then Popper.js, then Bootstrap JS-->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script> -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+
 <!--sets a bell's state and updates monitoring table-->
 <script type="text/JavaScript">function setNotify(id, table){
 
@@ -174,6 +177,7 @@
                     action: 'fetch'
                 },
                 dataType: "JSON",
+                Connection: 'close',
                 success: function(data) {
 
                     //console.log(data);
@@ -214,11 +218,14 @@
                         }
                     }
                     $('#washerTable tbody').html(html);
+
                 }
                 //error:function(error)
                 //{
                 //  throw new Error('Failed');
                 //}
+
+                
             });
         }
 
