@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<head>
+    <!-- Required meta tags-->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><!-- Bootstrap CSS-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <!--local CSS-->
+    <!--link(rel='stylesheet' href='styles.css')-->
+    <!--Outlined and filled google icons-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <title><%=title%></title>
+</head><!-- Navbar-->
+<nav class="navbar navbar-expand-xxl bg-dark navbar-dark justify-content-center">
+    <class class="navbar-brand">[Selected location] Laundry</class>
+    <div class="dropdown"><button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Laundry Rooms</button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#">Fill</a></li>
+            <li><a class="dropdown-item" href="#">With</a></li>
+            <li><a class="dropdown-item" href="#">Database/statically</a></li>
+        </ul>
+    </div>
+</nav><!-- Tables-->
+<section class="bg-light text-dark p-5">
+    <div class="container-fluid">
+        <!--text centering is done in the row-->
+        <div class="row text-center justify-content-center">
+            <div class="col p-5">
+                <h1>Washers</h1>
+                <table class="table text-dark text-center" id="washerTable">
+                    <thead>
+                        <th scope="col">#</th>
+                        <th scope="col">state</th>
+                        <th scope="col">notify</th>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="col p-5">
+                <table class="table text-dark" id="monitorTable">
+                    <h1>Monitoring</h1>
+                    <thead>
+                        <th scope="col">Machine</th>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="col p-5">
+                <h1>Dryers</h1>
+                <table class="table text-dark">
+                    <thead>
+                        <th scope="col">#</th>
+                        <th scope="col">state</th>
+                        <th scope="col">notify</th>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</section><!-- bottom of page-->
+<navbar class="navbar navbar-static-bottom text-center justify-content-center bg-warning p-3">
+    <div class="navbar-brand">
+        <p class="fs-5">Problem with the machines? Report it here!</p><a class="btn btn-outline-primary" href="https://www.cscsw.com/request-service/" role="button">Report a Machine</a>
+    </div>
+</navbar><!-- Optional JavaScript-->
+<!-- jQuery first, then Popper.js, then Bootstrap JS-->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+<!--sets a bell's state and updates monitoring table-->
+<script type="text/JavaScript">function setNotify(id, table){
+
+
+  bellState = document.getElementById(id).className
+
+  //if bell is off
+  if(bellState == "material-icons-outlined"){
+  //initialize to an impossible value
+  var rowNum = -1;
+  var machineNum = "error"
+
+  //changing notification bell from outlined to filled.
+  //add the machine number to the monitoring table
+  for(var i = 0; i < table.rows.length; i++){
+    if(id.includes("" + i)){
+      rowNum = i;
+      break;
+    }
+  }
+
+
+  //console.log(table.id);
+  if(table.id == "washerTable"){
+    machineNum = "Washer " + table.rows[rowNum].cells[0].innerHTML;
+    }
+  //machine number is in the first cell of the row
+  
+  $('#monitorTable tbody').append("<tr><td>"+machineNum+"</td></tr>");
+
+  //create an additional function, either in the load_data function or a new function that:
+  //checks if the machine's current state (in html table) and new state (in JSON) are different (specifically on to off)
+  //if so, then check if the washer id is in the monitoring table
+  //if so, send alert to user and remove from the monitoring table
+  document.getElementById(id).className = "material-icons";
+
+
+  }
+  else{
+  //turning off notification(deleting from monitoring table)
+  
+  var rowNum = -1;
+  var machineNum = "error"
+  var monitorTable = document.getElementById("monitorTable");
+
+  //obtain the row to delete
+  for(var i = 0; i < table.rows.length; i++){
+    if(id.includes("" + i)){
+      rowNum = i;
+      break;
+    }
+  }
+
+
+  //obtain innerHTML
+  if(table.id == "washerTable"){
+    machineNum = "Washer " + table.rows[rowNum].cells[0].innerHTML;
+    }
+  
+  //delete the row based on cell's inner HTML
+  for(var i = 0; i < monitorTable.rows.length; i++){
+      if(monitorTable.rows[i].cells[0].innerHTML == machineNum){
+        monitorTable.deleteRow(i)
+        break;
+      }
+  }
+
+
+  document.getElementById(id).className = "material-icons-outlined";
+  }
+
+
+
+
+}
+</script>
+<!--alert script-->
+<script type="text/JavaScript">function sendAlert(newState, rowNum, table){
+
+  rowState = document.getElementById("rowState" + rowNum);
+  //if(newState == "Off" && rowState == "On"){
+    aler
+  //}
+
+
+}
+</script>
+<!--loading data function-->
+<script>
+    $(document).ready(function() {
+
+        //used to initially load the table
+        load_data();
+
+        var run_update = setInterval(load_data, 10000);
+
+        function load_data() {
+            $.ajax({
+                url: "http://localhost:3000/index/action",
+                method: "POST",
+                //in sent data, this is where we would specify building
+                //machine type (washer/dryer) could also be specified here if we were to split db queries by machine types
+                data: {
+                    action: 'fetch'
+                },
+                dataType: "JSON",
+                success: function(data) {
+
+                    //console.log(data);
+                    //console.log(data.data[0].state);
+                    var html = '';
+
+                    if (data.data.length > 0) {
+                        for (var count = 0; count < data.data.length; count++) {
+
+                            //When a washers state changes to off, instead of a bell, an inactive
+                            //time must be displayed. This value should probably be obtained from
+                            //the database.
+
+                            //code below ensures a bell's state does not change when the table updates
+                            //if a bell exists, check its state
+                            if (document.getElementById('notify' + (count + 1))) {
+                                bellState = document.getElementById('notify' + (count + 1)).className
+
+                                //if bell is on
+                                if (bellState == "material-icons") {
+
+
+                                    //check if alert must be sent
+                                    sendAlert(data.data[count].state, count, monitorTable);
+
+                                    html += '<tr><td id=washer' + (count + 1) + '> ' + (count + 1) + '</td><td id="rowState"' + (count + 1) + '>' + data.data[count].state + '</td><td><span id=notify' + (count + 1) + ' class="material-icons" style="cursor:pointer;" onclick="setNotify(this.id, washerTable)">notifications</span></td></tr>';
+                                } else {
+                                    //if bell is off
+                                    html += '<tr><td id=washer' + (count + 1) + '> ' + (count + 1) + '</td><td id="rowState"' + (count + 1) + '>' + data.data[count].state + '</td><td><span id=notify' + (count + 1) + ' class="material-icons-outlined" style="cursor:pointer;" onclick="setNotify(this.id, washerTable)">notifications</span></td></tr>';
+                                }
+                            } else {
+                                //if no bell exists, then add one
+                                html += '<tr><td id=washer' + (count + 1) + '> ' + (count + 1) + '</td><td id="rowState"' + (count + 1) + '>' + data.data[count].state + '</td><td><span id=notify' + (count + 1) + ' class="material-icons-outlined" style="cursor:pointer;" onclick="setNotify(this.id, washerTable)">notifications</span></td></tr>';
+
+                            }
+
+
+                        }
+                    }
+                    $('#washerTable tbody').html(html);
+                }
+                //error:function(error)
+                //{
+                //  throw new Error('Failed');
+                //}
+            });
+        }
+
+    });
+</script>
