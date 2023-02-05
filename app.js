@@ -16,6 +16,9 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+app.use('/css', express.static(__dirname + '/views/src'));
+app.use('/js', express.static(__dirname + '/node_modules/bootstrap/dist/js'));
+
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
