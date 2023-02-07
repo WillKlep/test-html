@@ -9,9 +9,12 @@
 @import "../../node_modules/bootstrap/scss/_variables";
 
 $custom-theme-colors:(
-    "light-orange": rgb(246, 199, 111)
+    "light-orange": rgb(255, 244, 226),
+    "onu-orange": rgb(233,112,0)
 
 );
+
+
 
 $theme-colors: map-merge($custom-theme-colors, $theme-colors);
 
