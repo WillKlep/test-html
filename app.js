@@ -4,6 +4,9 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+var server = require('http').createServer(app);
+var bodyParser = require('body-parser');
+
 const indexRouter = require('./routes/index');
 //const usersRouter = require('./routes/users');
 const catalogRouter = require("./routes/catalog");
@@ -52,3 +55,5 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
+
+server.listen(port);
