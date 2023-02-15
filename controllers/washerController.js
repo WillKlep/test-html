@@ -5,7 +5,7 @@ const Building = require("../Building");
 const async = require("async");
 
 exports.index = (req, res) => {
-    res.render("index", {title: "home page", message: "NOT IMPLEMENTED: Site Home Page"});
+    res.render("index", {title: "home page", message: "AS OF 2-15-23: NOT IMPLEMENTED: Site Home Page"});
   };
 
 exports.washer_list = function (req, res) {
