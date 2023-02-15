@@ -6,7 +6,8 @@
 
 var app = require('../app');
 var debug = require('debug')('laundry:server');
-var http = require('http');
+var https = require('https');
+const fs = require("fs");
 
 /**
  * Get port from environment and store in Express.
@@ -15,18 +16,36 @@ var http = require('http');
 var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
+// Creating object of key and certificate
+// for SSL
+const options = {
+
+  // for local testing on Will's PC
+  // key: fs.readFileSync("server.key"),
+  // cert: fs.readFileSync("server.cert"),
+
+  // for production
+  key: fs.readFileSync("/etc/letsencrypt/live/${site}/privkey.pem"),
+  cert: fs.readFileSync("/etc/letsencrypt/live/intellaundry.com/fullchain.pem"),
+};
+
 /**
- * Create HTTP server.
+ * Create HTTPS server.
  */
 
-var server = http.createServer(app);
+// Creating https server by passing
+// options and app object
+https.createServer(options, app)
+.listen(3000, function (req, res) {
+  console.log("HTTPS Server started at port 3000");
+});
 
 /**
  * Listen on provided port, on all network interfaces.
  */
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+// server.listen(port);
+// server.on('error', onError);
+// server.on('listening', onListening);
 
 /**
  * Normalize a port into a number, string, or false.
@@ -81,7 +100,7 @@ function onError(error) {
  */
 
 function onListening() {
-  var addr = server.address();
+  //var addr = server.address();
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
