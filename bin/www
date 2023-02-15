@@ -13,7 +13,7 @@ const fs = require("fs");
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '443');
+var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
 // Creating object of key and certificate
@@ -36,7 +36,7 @@ const options = {
 // Creating https server by passing
 // options and app object
 https.createServer(options, app)
-.listen(443, function (req, res) {
+.listen(3000, function (req, res) {
   console.log("HTTPS Server started at port 443");
 });
 
