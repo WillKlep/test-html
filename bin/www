@@ -25,7 +25,7 @@ const options = {
   // cert: fs.readFileSync("server.cert"),
 
   // for production
-  key: fs.readFileSync("/etc/letsencrypt/live/intellaundry/privkey.pem"),
+  key: fs.readFileSync("/etc/letsencrypt/live/intellaundry.com/privkey.pem"),
   cert: fs.readFileSync("/etc/letsencrypt/live/intellaundry.com/fullchain.pem"),
 };
 
