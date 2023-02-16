@@ -35,12 +35,11 @@ app.use("/catalog", catalogRouter);
 app.use("/index", ajaxUpdater);
 
 app.get("/data", function(req, res){
-  res.render("data",{data: "good"});
+  res.render("data",{data: req.body.count});
 });
 
 app.post('/data', function(req, res){
    var html = "You were able to post";
-   res.send(req.body);
    res.redirect("/data");
 });
 
