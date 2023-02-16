@@ -42,9 +42,9 @@ var count = "";
 app.route("/data")
 .get(function(req, res){
 	res.render("data",{
-	machine_id: machine_id,
-		current: current,
-		count: count
+	"machine_id": machine_id,
+		"current": current,
+		"count": count
 	});
 	
 //manual page refresh	
