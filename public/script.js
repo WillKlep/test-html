@@ -1,5 +1,5 @@
 $(document).ready(function() {
-	$("h1").load(function(event) {
+	$("h1").on("load",function(event) {
 		event.preventDefault();
 		//used to initially load the table
 	    load_data();
