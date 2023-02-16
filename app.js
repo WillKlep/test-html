@@ -34,11 +34,14 @@ app.use('/', indexRouter);
 app.use("/catalog", catalogRouter);
 app.use("/index", ajaxUpdater);
 
+var espData = "";
+
 app.route("/data")
 .get(function(req, res){
-  res.render("data",{quote: "AJAX is great!"});
+  res.render("data",{quote: espData});
 })
 .post(function(req,res){
+  espData = req.body.quote;
   res.send({response:req.body.quote});
 })
 
