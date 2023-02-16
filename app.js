@@ -34,15 +34,28 @@ app.use('/', indexRouter);
 app.use("/catalog", catalogRouter);
 app.use("/index", ajaxUpdater);
 
-var espData = "";
+//var espData = "";
+var machine_id;
+var current;
+var count;
 
 app.route("/data")
 .get(function(req, res){
-  res.render("data",{quote: espData});
+	response.json({
+	machine_id: machine_id;
+		current: current;
+		count: count;
+	});
+	
+//manual page refresh	
+//res.render("data",{quote: espData});
 })
 .post(function(req,res){
-  espData = req.body.quote;
-  res.send({response:req.body.quote});
+  machine_id = req.body.machine_id;
+	current = req.body.current;
+	count = req.body.count;
+	//returns a response to the sender. 
+  //res.send({response:req.body.quote});
 })
 
 // catch 404 and forward to error handler
