@@ -11,13 +11,13 @@ $(document).ready(function() {
 				url: "/data",
 				method: "GET",
 				contentType: "application/json",
-				data:JSON.stringify(JSON.parse({action: 'fetch'})),
+				data:{action: 'fetch'},
 				sucess: function(res){
 					console.log(data);
 					
-					document.getElementById("Datamachine_id").innerHTML = res.data.machine_id;
-					document.getElementById("Datacurrent").innerHTML = res.data.current;
-					document.getElementById("Datacount").innerHTML = res.data.count;
+					document.getElementById("Datamachine_id").innerHTML = JSON.stringify(res.data.machine_id);
+					document.getElementById("Datacurrent").innerHTML = JSON.stringify(res.data.current);
+					document.getElementById("Datacount").innerHTML = JSON.stringify(res.data.count);
 					
 					
 					//old method
