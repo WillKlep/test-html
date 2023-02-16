@@ -17,7 +17,7 @@ $(document).ready(function() {
 					
 					document.getElementById("Datamachine_id").innerHTML = res.res.machine_id;
 					document.getElementById("Datacurrent").innerHTML = res.res.current;
-					document.getElementById("Datacount").innerHTML = res.res.count;
+					document.getElementById("DataCount").innerHTML = "test";
 					
 					
 					//old method
