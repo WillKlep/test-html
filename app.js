@@ -34,14 +34,13 @@ app.use('/', indexRouter);
 app.use("/catalog", catalogRouter);
 app.use("/index", ajaxUpdater);
 
-app.get("/data", function(req, res){
-  res.render("data",{data: req.body.count});
-});
-
-app.post('/data', function(req, res){
-   var html = "You were able to post";
-   res.redirect("/data");
-});
+app.route("/data")
+.get(function(req, res){
+  res.render("data",{quote: "AJAX is great!"});
+})
+.post(function(req,res){
+  
+})
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
