@@ -58,8 +58,8 @@ app.route("/data")
   machine_id = req.body.machine_id;
 	current = req.body.current;
 	count = req.body.count;
-	//returns a response to the sender. 
-  //res.send({response:req.body.quote});
+	//returns a response to the sender. Improves ESP send rate. 
+  res.send({response:"JSON Received"});
 })
 
 // catch 404 and forward to error handler
