@@ -15,9 +15,9 @@ $(document).ready(function() {
 				sucess: function(res){
 					console.log(data);
 					
-					document.getElementById("Datamachine_id").innerHTML = res.machine_id;
-					document.getElementById("Datacurrent").innerHTML = res.current;
-					document.getElementById("Datacount").innerHTML = res.count;
+					document.getElementById("Datamachine_id").innerHTML = res.data.machine_id;
+					document.getElementById("Datacurrent").innerHTML = res.data.current;
+					document.getElementById("Datacount").innerHTML = res.data.count;
 					
 					
 					//old method
