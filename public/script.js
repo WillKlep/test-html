@@ -1,5 +1,4 @@
 $(document).ready(function() {
-
 	$("h1").load(function(event) {
 		event.preventDefault();
 		//used to initially load the table
@@ -15,7 +14,7 @@ $(document).ready(function() {
 				data:{action: 'fetch'},
 				sucess: function(res){
 					console.log(data);
-					$("h1").html("Quote: ${res.response}");
+					$("h1").html(`Quote: ${res.response}`);
 				}
 			}) // close ajax
 		} // close load_data
