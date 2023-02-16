@@ -8,9 +8,9 @@ $(document).ready(function() {
 
 	    function load_data() {
 			$.ajax({
-				url: "/data/getESP",
+				url: "/ESPdata",
 				method: "GET",
-				contentType: "application/json",
+				contentType: "JSON",
 				data:{action: 'fetch'},
 				sucess: function(res){
 					
