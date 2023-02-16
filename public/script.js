@@ -15,7 +15,10 @@ $(document).ready(function() {
 				sucess: function(res){
 					console.log(data);
 					$("h1").html(`Quote: ${res.response}`);
-				}
+				},
+				error: function(jqXHR, textStatus, errorThrown){
+        				console.log('ERROR: ' + jqXHR.status);
+    				}
 			}) // close ajax
 		} // close load_data
 	});// close load
