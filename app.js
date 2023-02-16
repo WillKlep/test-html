@@ -38,11 +38,12 @@ app.get("/data", function(req, res){
   res.render("data");
 });
 
-app.post('/data',function(req,res){
+app.post('/data', function(req, res){
    var html = "You were able to post";
    res.send(html);
    console.log(html);
    console.log(req.body);
+   var data = req.body;
    res.redirect("/data");
 });
 
