@@ -14,7 +14,14 @@ $(document).ready(function() {
 				data:{action: 'fetch'},
 				sucess: function(res){
 					console.log(data);
-					$("h1").html(`Quote: ${res.response}`);
+					
+					document.getElementById("Datamachine_id").innerHTML = res.response.machine_id;
+					document.getElementById("Datacurrent").innerHTML = res.response.current;
+					document.getElementById("Datacount").innerHTML = res.response.count;
+					
+					
+					//old method
+					//$("h1").html(`Quote: ${res.response}`);
 				},
 				error: function(jqXHR, textStatus, errorThrown){
         				console.log('ERROR: ' + jqXHR.status);
