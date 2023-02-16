@@ -13,11 +13,10 @@ $(document).ready(function() {
 				contentType: "application/json",
 				data:{action: 'fetch'},
 				sucess: function(res){
-					console.log(res.machine_id);
 					
-					document.getElementById("Datamachine_id").innerHTML = res.data.machine_id;
-					document.getElementById("Datacurrent").innerHTML = 4
-					document.getElementById("DataCount").innerHTML = "test";
+					document.getElementById('Datamachine_id').innerHTML = res.data.machine_id;
+					document.getElementById('Datacurrent').innerHTML = 4
+					document.getElementById('DataCount').innerHTML = "test";
 					
 					
 					//old method
