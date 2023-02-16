@@ -41,7 +41,7 @@ var count = "";
 
 app.route("/data")
 .get(function(req, res){
-	res.json({
+	res.response("data", {
 	"machine_id": machine_id,
 		"current": current,
 		"count": count
