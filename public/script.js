@@ -10,7 +10,7 @@ $(document).ready(function() {
 			$.ajax({
 				url: "/ESPdata",
 				method: "GET",
-				contentType: "JSON",
+				dataType: "JSON",
 				data:{action: 'fetch'},
 				sucess: function(res){
 					console.log("json success");
@@ -22,7 +22,10 @@ $(document).ready(function() {
 					
 					//old method
 					//$("h1").html(`Quote: ${res.response}`);
-				}
+				},
+				error: function(jqXHR, textStatus, errorThrown){
+        				console.log('ERROR: ' + jqXHR.status);
+    				}
 			}) // close ajax
 		} // close load_data
 	//});// close load
