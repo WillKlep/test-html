@@ -9,7 +9,7 @@ $(document).ready(function() {
 	    function load_data() {
 			$.ajax({
 				url: "/data",
-				method: "POST",
+				method: "GET",
 				contentType: "application/json",
 				data:{action: 'fetch'},
 				sucess: function(res){
