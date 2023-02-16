@@ -1,9 +1,13 @@
+const port = 3000;
+
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-const mongoose = require("mongoose");
+
+var server = require('http').createServer(app);
+var bodyParser = require('body-parser');
 
 const indexRouter = require('./routes/index');
 //const usersRouter = require('./routes/users');
@@ -12,19 +16,6 @@ const catalogRouter = require("./routes/catalog");
 const ajaxUpdater = require("./routes/index");
 
 var app = express();
-
-
-mongoose.connect("mongodb://127.0.0.1:27017/test1",
-{
-	useNewUrlParser: true,
-	useUnifiedTopology: true
-	
-}).then(() => {
-	console.log('connected to db');
-}).catch((error) => {
-	console.log('problem found', error);
-});
-
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -43,16 +34,16 @@ app.use('/', indexRouter);
 app.use("/catalog", catalogRouter);
 app.use("/index", ajaxUpdater);
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
-
 app.post('/',function(req,res){
    var html = "You were able to post";
    res.send(html);
    console.log(html);
    console.log(req.body);
+});
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  next(createError(404));
 });
 
 // error handler
@@ -67,3 +58,7 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
+
+app.listen(port, () => {
+	console.log("Serving on port 3000")
+})
