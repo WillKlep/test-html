@@ -48,6 +48,13 @@ app.use(function(req, res, next) {
   next(createError(404));
 });
 
+app.post('/',function(req,res){
+   var html = "You were able to post";
+   res.send(html);
+   console.log(html);
+   console.log(req.body);
+});
+
 // error handler
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
