@@ -11,7 +11,7 @@ $(document).ready(function() {
 				url: "/data",
 				method: "GET",
 				contentType: "application/json",
-				data:JSON.stringify({action: 'fetch'}),
+				data:JSON.parse(JSON.stringify({action: 'fetch'})),
 				sucess: function(res){
 					console.log(data);
 					
