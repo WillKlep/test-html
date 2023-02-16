@@ -45,7 +45,7 @@ app.route("/data/getESP").get(function(req,res){
 		"current": current,
 		"count": count
 	});
-}
+});
 
 app.route("/data")
 .get(function(req, res){
