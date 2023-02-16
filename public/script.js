@@ -12,7 +12,7 @@ $(document).ready(function() {
 				method: "GET",
 				dataType: "JSON",
 				data:{action: 'fetch'},
-				sucess: function(res){
+				success: function(res){
 					console.log("json success");
 					
 					document.getElementById('Datamachine_id').innerHTML = res.data.machine_id;
