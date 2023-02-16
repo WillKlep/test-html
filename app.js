@@ -40,6 +40,7 @@ app.get("/data", function(req, res){
 
 app.post('/data', function(req, res){
    var html = "You were able to post";
+   res.send(req.body);
    res.render("data",{data: req.body});
 });
 
