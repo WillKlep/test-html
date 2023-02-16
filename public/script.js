@@ -16,8 +16,8 @@ $(document).ready(function() {
 					console.log("json success");
 					
 					document.getElementById('Datamachine_id').innerHTML = res.machine_id;
-					document.getElementById('Datacurrent').innerHTML = 4
-					document.getElementById('DataCount').innerHTML = "test";
+					document.getElementById('Datacurrent').innerHTML = res.current;
+					document.getElementById('DataCount').innerHTML = res.count;
 					
 					
 					//old method
