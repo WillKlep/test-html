@@ -15,9 +15,9 @@ $(document).ready(function() {
 				success: function(res){
 					console.log("json success");
 					
-					document.getElementById('Datamachine_id').innerHTML = res.machine_id;
-					document.getElementById('Datacurrent').innerHTML = res.current;
-					document.getElementById('DataCount').innerHTML = res.count;
+					document.getElementById('Datamachine_id').innerHTML = "ID: "+ res.machine_id;
+					document.getElementById('Datacurrent').innerHTML = "Current: " + res.current;
+					document.getElementById('DataCount').innerHTML = "Count: " + res.count;
 					
 					
 					//old method
