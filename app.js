@@ -40,11 +40,7 @@ app.get("/data", function(req, res){
 
 app.post('/data', function(req, res){
    var html = "You were able to post";
-   res.send(html);
-   console.log(html);
-   console.log(req.body);
-   var data = req.body;
-   res.redirect("/data");
+   res.render("data",{data: req.body});
 });
 
 // catch 404 and forward to error handler
