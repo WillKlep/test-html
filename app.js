@@ -35,9 +35,9 @@ app.use("/catalog", catalogRouter);
 app.use("/index", ajaxUpdater);
 
 //var espData = "";
-var machine_id;
-var current;
-var count;
+var machine_id = "";
+var current = "";
+var count = "";
 
 app.route("/data")
 .get(function(req, res){
