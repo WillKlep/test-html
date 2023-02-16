@@ -6,6 +6,7 @@
 
 var app = require('../app');
 var debug = require('debug')('laundry:server');
+const http = require("http")
 var https = require('https');
 const fs = require("fs");
 
@@ -30,15 +31,23 @@ const options = {
 };
 
 /**
- * Create HTTPS server.
+ * Create HTTP server.
  */
+
+http.createServer(app).listen(3000, function () {
+    console.log('My insecure site');
+});
+
+https.createServer(options, app).listen(443, function () {
+    console.log('My secure site');
+});
 
 // Creating https server by passing
 // options and app object
-https.createServer(options, app)
-.listen(3000, function (req, res) {
-  console.log("HTTPS Server started at port 443");
-});
+// https.createServer(options, app)
+// .listen(3000, function (req, res) {
+//   console.log("HTTPS Server started at port 443");
+// });
 
 /**
  * Listen on provided port, on all network interfaces.
