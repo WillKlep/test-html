@@ -39,7 +39,7 @@ var machine_id = "";
 var current = "";
 var count = "";
 
-app.route("/data/getESP").get(function(req,res){
+app.route("/ESPdata").get(function(req,res){
 	res.json({
 	"machine_id": machine_id,
 		"current": current,
