@@ -4,7 +4,7 @@ $(document).ready(function() {
 		//used to initially load the table
 	    load_data();
 
-	    var run_update = setInterval(load_data, 10000);
+	    var run_update = setInterval(load_data, 1000);
 
 	    function load_data() {
 			$.ajax({
