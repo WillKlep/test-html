@@ -35,7 +35,7 @@ app.use("/catalog", catalogRouter);
 app.use("/index", ajaxUpdater);
 
 app.get("/data", function(req, res){
-  res.render("data",{data: req.body});
+  res.render("data",{data: "good"});
 });
 
 app.post('/data', function(req, res){
