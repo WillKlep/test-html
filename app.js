@@ -39,7 +39,8 @@ app.route("/data")
   res.render("data",{quote: "AJAX is great!"});
 })
 .post(function(req,res){
-  res.send({response:req.body.quote});
+  var {quote, count} = req.body;
+  res.send("Okay, here's the ${quote} and ${count}");
 })
 
 // catch 404 and forward to error handler
