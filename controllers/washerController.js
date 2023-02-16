@@ -9,7 +9,10 @@ exports.index = (req, res) => {
   };
 
 exports.washer_list = function (req, res) {
-    //res.render("laundry_page",  { title: "Laundry Page"})
+	//IMPORTANT TEMP FIX.
+	//this line will render the laundry page without mongodb. this should be
+	//commented back after mongodb is switched to https
+    res.render("laundry_page",  { title: "Laundry Page"})
     
     //this could be a secuirty problem. Add a user with read only permission
     //to the database, setup a password, and store the connect string in a
@@ -17,8 +20,10 @@ exports.washer_list = function (req, res) {
     
     Building.find({}, "name", (err, allBuildings) =>{
 		if (err) return handleError(err);
-
-        res.render("laundry_page",  { title: "Laundry Page",
+	    
+	    //IMPORTANT TEMP FIX
+	    //uncomment this line to return website to how it was originally functioning
+        //res.render("laundry_page",  { title: "Laundry Page",
         all_buildings: allBuildings
         });
         
