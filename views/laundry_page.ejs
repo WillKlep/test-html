@@ -22,9 +22,12 @@
     <class class="navbar-brand text-onu-orange titlefont">[Selected location] Laundry</class>
     <div class="dropdown"><button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Laundry Rooms</button>
         <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Fill</a></li>
+            <% for(var i=0; i<all_buildings.length; i++) {%>
+            <li><a class="dropdown-item" href="#"></a><%= all_buildings[i].name %></a></li>
+            <% } %>
+            <!-- <li><a class="dropdown-item" href="#">Fill</a></li>
             <li><a class="dropdown-item" href="#">With</a></li>
-            <li><a class="dropdown-item" href="#">Database/statically</a></li>
+            <li><a class="dropdown-item" href="#">Database/statically</a></li> -->
         </ul>
     </div>
 </nav><!-- Tables--> 
@@ -167,6 +170,7 @@
 }
 </script>
 <!--loading data function-->
+
 <script>
     $(document).ready(function() {
 
@@ -183,17 +187,19 @@
                 //machine type (washer/dryer) could also be specified here if we were to split db queries by machine types
                 data: {
                     action: 'fetch'
+                    //building name: get Element dropdown (trigger load data on search click)
                 },
                 dataType: "JSON",
                 Connection: 'close',
                 success: function(data) {
 
+                    console.log("test");
                     //console.log(data);
                     //console.log(data.data[0].state);
                     var html = '';
 
-                    if (data.data.length > 0) {
-                        for (var count = 0; count < data.data.length; count++) {
+                    if (data.data[0].washers.length > 0) {
+                        for (var count = 0; count < data.data[0].washers.length; count++) {
 
                             //When a washers state changes to off, instead of a bell, an inactive
                             //time must be displayed. This value should probably be obtained from
@@ -201,27 +207,37 @@
 
                             //code below ensures a bell's state does not change when the table updates
                             //if a bell exists, check its state
-                            if (document.getElementById('notify' + (count + 1))) {
-                                bellState = document.getElementById('notify' + (count + 1)).className
+                            var washerID = data.data[0].washers[count].washID;
+                            var state = "";
+                            if(data.data[0].washers[count].active){
+                                var state = "On"
+                            }
+                            else{
+                                var state = "Off"
+                            }
+                            
+
+                            if (document.getElementById('notify' + washerID)) {
+                                bellState = document.getElementById('notify' + washerID).className
 
                                 //if bell is on
                                 if (bellState == "material-icons") {
 
 
                                     //check if alert must be sent
-                                    sendAlert(data.data[count].state, count, monitorTable);
+                                    //sendAlert(data.data[count].state, count, monitorTable);
 
-                                    html += '<tr><td id=washer' + (count + 1) + '> ' + (count + 1) + '</td><td id="rowState"' + (count + 1) + '>' + data.data[count].state + '</td><td><span id=notify' + (count + 1) + ' class="material-icons" style="cursor:pointer;" onclick="setNotify(this.id, washerTable)">notifications</span></td></tr>';
+                                    html += '<tr><td id=washer' + washerID + '> ' + washerID + '</td><td id="rowState"' + washerID + '>' + state + '</td><td><span id=notify' + washerID + ' class="material-icons" style="cursor:pointer;" onclick="setNotify(this.id, washerTable)">notifications</span></td></tr>';
                                 } else {
                                     //if bell is off
-                                    html += '<tr><td id=washer' + (count + 1) + '> ' + (count + 1) + '</td><td id="rowState"' + (count + 1) + '>' + data.data[count].state + '</td><td><span id=notify' + (count + 1) + ' class="material-icons-outlined" style="cursor:pointer;" onclick="setNotify(this.id, washerTable)">notifications</span></td></tr>';
+                                    html += '<tr><td id=washer' + washerID + '> ' + washerID + '</td><td id="rowState"' + washerID + '>' + state + '</td><td><span id=notify' + washerID + ' class="material-icons-outlined" style="cursor:pointer;" onclick="setNotify(this.id, washerTable)">notifications</span></td></tr>';
                                 }
                             } else {
                                 //if no bell exists, then add one
-                                html += '<tr><td id=washer' + (count + 1) + '> ' + (count + 1) + '</td><td id="rowState"' + (count + 1) + '>' + data.data[count].state + '</td><td><span id=notify' + (count + 1) + ' class="material-icons-outlined" style="cursor:pointer;" onclick="setNotify(this.id, washerTable)">notifications</span></td></tr>';
+                                html += '<tr><td id=washer' + washerID + '> ' + washerID + '</td><td id="rowState"' + washerID + '>' + state + '</td><td><span id=notify' + washerID + ' class="material-icons-outlined" style="cursor:pointer;" onclick="setNotify(this.id, washerTable)">notifications</span></td></tr>';
 
                             }
-
+                            
 
                         }
                     }
