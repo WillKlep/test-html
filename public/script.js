@@ -1,5 +1,5 @@
 $(document).ready(function() {
-	$("h1").on("load",function(event) {
+	//$("h1").on("load",function(event) {
 		event.preventDefault();
 		//used to initially load the table
 	    load_data();
@@ -28,5 +28,5 @@ $(document).ready(function() {
     				}
 			}) // close ajax
 		} // close load_data
-	});// close load
+	//});// close load
 }); // close document.ready
