@@ -7,7 +7,7 @@ mongoose.connect("mongodb://0.0.0.0:27017/test1",
 {
 	// add ssl connect
 	ssl: true,
-	sslValidate: false,
+	sslValidate: true,
 	useNewUrlParser: true,
 	useUnifiedTopology: true
 	
