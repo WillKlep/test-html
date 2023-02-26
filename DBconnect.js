@@ -3,7 +3,7 @@
 const mongoose = require("mongoose");
 const Machine = require("./Machine");
 const Building = require("./Building");
-mongoose.connect("mongodb://127.0.0.1:27017/test1",
+mongoose.connect("mongodb://0.0.0.0:27017/test1",
 {
 	// add ssl connect
 	ssl: true,
