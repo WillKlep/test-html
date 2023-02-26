@@ -5,9 +5,8 @@ const Machine = require("./Machine");
 const Building = require("./Building");
 mongoose.connect("mongodb://0.0.0.0:27017/test1",
 {
-	// add ssl connect
-	ssl: true,
-	sslValidate: true,
+	// add ssl or tls connect
+	tls: true,
 	useNewUrlParser: true,
 	useUnifiedTopology: true
 	
