@@ -8,6 +8,8 @@ mongoose.connect("mongodb://0.0.0.0:27017/test1",
 	// add ssl or tls connect
 	tls: true,
 	tlsCAFile: `${__dirname}/certs/mongo.pem`,
+	tlsAllowInvalidCertificates: true,
+	tlsAllowInvalidHostnames: true,
 	useNewUrlParser: true,
 	useUnifiedTopology: true
 	
