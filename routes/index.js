@@ -22,7 +22,6 @@ router.post("/action", function(request, response){
   //(maybe as environment variables)
   if(action == 'fetch'){
     
-    response.sendStatus(200)
     Building.find({name: "Maglott"}, "dryers washers" , (err, buildingMachines) =>{
       if (err) return handleError(err);
       
