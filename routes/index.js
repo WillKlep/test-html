@@ -21,7 +21,8 @@ router.post("/action", function(request, response){
   //if we need a username/password for the url, those should be securely stored
   //(maybe as environment variables)
   if(action == 'fetch'){
-
+    
+    respone.sendStatus(200)
     Building.find({name: "Maglott"}, "dryers washers" , (err, buildingMachines) =>{
       if (err) return handleError(err);
       
