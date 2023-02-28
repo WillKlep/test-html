@@ -22,12 +22,12 @@ exports.washer_list = function (req, res) {
 	    
 	    //IMPORTANT TEMP FIX
 	    //uncomment this line to return website to how it was originally functioning
-        
 	/* res.render("laundry_page",  { title: "Laundry Page",
         all_buildings: allBuildings
         });
+	*/
 	
         
 	});
-    */
+    
 };
