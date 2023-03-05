@@ -3,13 +3,8 @@
 const mongoose = require("mongoose");
 const Machine = require("./Machine");
 const Building = require("./Building");
-mongoose.connect("mongodb://0.0.0.0:27017/test1",
+mongoose.connect("mongodb+srv://williamklepinger:pmal52VJggUdzAWR@cluster0.axt2vht.mongodb.net/test1?retryWrites=true&w=majority"",
 {
-	// add ssl or tls connect
-	tls: true,
-	tlsCAFile: `/etc/ssl/mongo.pem`,
-	tlsAllowInvalidCertificates: true,
-	tlsAllowInvalidHostnames: true,
 	useNewUrlParser: true,
 	useUnifiedTopology: true
 	
