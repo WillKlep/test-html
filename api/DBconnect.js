@@ -3,7 +3,7 @@
 const mongoose = require("mongoose");
 const Machine = require("./Machine");
 const Building = require("./Building");
-mongoose.connect("mongodb+srv://williamklepinger:pmal52VJggUdzAWR@cluster0.axt2vht.mongodb.net/test1?retryWrites=true&w=majority"",
+mongoose.connect("mongodb+srv://williamklepinger:pmal52VJggUdzAWR@cluster0.axt2vht.mongodb.net/test1?retryWrites=true&w=majority",
 {
 	useNewUrlParser: true,
 	useUnifiedTopology: true
