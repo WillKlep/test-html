@@ -17,7 +17,7 @@ const async = require("async");
 
 /* GET home page. */
 router.get("/", function (req, res) {
-  //res.sendFile('../../app/dist/laundry/index.html', { root: __dirname });
+  res.sendFile('../../app/dist/laundry/index.html', { root: __dirname });
 });
 
 //updates page with database info
