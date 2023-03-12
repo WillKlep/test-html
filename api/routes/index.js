@@ -60,7 +60,7 @@ response.json(test: "test")
   //if we need a username/password for the url, those should be securely stored
   //(maybe as environment variables)
   
-/*
+
     Building.find({}, "name" , (err, buildingNames) =>{
       if (err) return handleError(err);
       
@@ -75,7 +75,7 @@ response.json(test: "test")
   
     });
 
-*/
+
 });
 
 //stores the subscriber in the database to be used later
