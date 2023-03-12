@@ -56,7 +56,6 @@ router.post("/action", function(request, response){
 router.get("/getBuilding", function(request, response){
 
   console.log("beginning fetch");
-response.json(test: "test")
   //if we need a username/password for the url, those should be securely stored
   //(maybe as environment variables)
   
