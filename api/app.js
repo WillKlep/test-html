@@ -20,7 +20,7 @@ const cors = require('cors');
 //this could be a secuirty problem. Add a user with read only permission
     //to the database, setup a password, and store the connect string in a
     //separate and protected file.
-mongoose.connect("mongodb://127.0.0.1:27017/test1",
+mongoose.connect("mongodb+srv://williamklepinger:pmal52VJggUdzAWR@cluster0.axt2vht.mongodb.net/test1?retryWrites=true&w=majority",
 {
 	useNewUrlParser: true,
 	useUnifiedTopology: true
