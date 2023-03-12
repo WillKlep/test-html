@@ -12,7 +12,8 @@ const indexRouter = require('./routes/index');
 //const usersRouter = require('./routes/users');
 const catalogRouter = require("./routes/catalog");
 
-const ajaxUpdater = require("./routes/index");
+//const ajaxUpdater = require("./routes/index");
+const apiRouter = require("./routes/api");
 
 const cors = require('cors');
 
@@ -53,8 +54,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use("/catalog", catalogRouter);
-app.use("/index", ajaxUpdater);
-
+//app.use("/index", ajaxUpdater);
+app.use("/api", apiRouter);
 
 //var espData = "";
 var machine_id = "";
