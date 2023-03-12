@@ -6,6 +6,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const mongoose = require('mongoose');
+require('dotenv').config()
 
 
 const indexRouter = require('./routes/index');
@@ -21,7 +22,7 @@ const cors = require('cors');
 //this could be a secuirty problem. Add a user with read only permission
     //to the database, setup a password, and store the connect string in a
     //separate and protected file.
-mongoose.connect("mongodb+srv://williamklepinger:pmal52VJggUdzAWR@cluster0.axt2vht.mongodb.net/test1?retryWrites=true&w=majority",
+mongoose.connect(process.env.DB_CONNECT_URL,
 {
 	useNewUrlParser: true,
 	useUnifiedTopology: true
@@ -33,7 +34,6 @@ mongoose.connect("mongodb+srv://williamklepinger:pmal52VJggUdzAWR@cluster0.axt2v
 	console.log('problem found', error);
 });
     
-
 
 
 var app = express();
@@ -57,17 +57,19 @@ app.use("/catalog", catalogRouter);
 //app.use("/index", ajaxUpdater);
 app.use("/api", apiRouter);
 
+
 //var espData = "";
 var machine_id = "";
 var current = "";
 var count = "";
 
+//called by the esp to deliver data
 app.route("/ESPdata").get(function(req,res){
-	res.json({
-	"machine_id": machine_id,
-		"current": current,
-		"count": count
-	});
+	req.machine_id = machine_id
+	req.current = current;
+	req.count = count;
+
+
 });
 
 app.route("/data")
@@ -103,6 +105,8 @@ app.use(function(err, req, res, next) {
 
 module.exports = app;
 
+/*
 app.listen(port, () => {
 	console.log("Serving on port 3000")
 })
+*/
