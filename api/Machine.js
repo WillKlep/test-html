@@ -2,8 +2,10 @@
 const mongoose = require("mongoose")
 
 const machineSchema = new mongoose.Schema({
-	state: String,
-	type: String
+	state: Boolean,
+	type: String,
+	buildingID: Number,
+	machineID: Number
 });
 
 module.exports = mongoose.model("Machine", machineSchema)
