@@ -20,7 +20,7 @@ router.post("/action", function(request, response){
 
   console.log("beginning fetch");
   var selectedBuildingID = sanitize(request.body.buildingID);
-  //console.log(selectedBuildingID)
+  console.log(selectedBuildingID)
   
 
     Machine.find({buildingID: selectedBuildingID}, (err, buildingMachines) =>{
@@ -36,33 +36,6 @@ router.post("/action", function(request, response){
 
 
 //updates page with database info
-//actions have the "keep-alive" header attatched to them. This might need to be changed
-/*
-router.get("/getBuilding", function(request, response){
-
-  console.log("beginning fetch");
-
-  //if we need a username/password for the url, those should be securely stored
-  //(maybe as environment variables)
-    Building.find({}, "name" , (err, buildingNames) =>{
-      if (err) return handleError(err);
-      
-      
-      //console.log(buildingNames)
-
-
-      response.json(buildingNames)
-
-      //console.log(json_parse[0].washers);
-      
-  
-    });
-
-
-});
-*/
-//USING NEW DB!!!
-
 router.get("/getBuilding", function(request, response){
 
   console.log("beginning fetch");
