@@ -56,11 +56,11 @@ router.post("/action", function(request, response){
 router.get("/getBuilding", function(request, response){
 
   console.log("beginning fetch");
-
+response.json(test: "test")
   //if we need a username/password for the url, those should be securely stored
   //(maybe as environment variables)
   
-
+/*
     Building.find({}, "name" , (err, buildingNames) =>{
       if (err) return handleError(err);
       
@@ -75,7 +75,7 @@ router.get("/getBuilding", function(request, response){
   
     });
 
-
+*/
 });
 
 //stores the subscriber in the database to be used later
