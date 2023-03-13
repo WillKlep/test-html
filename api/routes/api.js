@@ -13,6 +13,65 @@ webpush.setVapidDetails(
 const Machine = require("../Machine");
 const MachineSubscriber = require("../MachineSubscriber");
 const Building = require("../Building");
+const espDataCollect = require("../espDataCollect")
+
+
+//log the data being obtained by the esp
+router.post("/logESPData", function(req,res){
+  //machine_id = req.body.machine_id;
+	current = req.body.current;
+  timestamp = Date.now()
+  espID = req.body.espID
+  countNum = req.body.count
+  //count = req.body.count;
+	
+  espDataJSON = JSON.stringify({
+    "current": current,
+    "timestamp": timestamp
+    })
+
+    /*
+    finds an esp with a specific ID, used mainly for testing
+    espDataCollect.find({uniqueID: espID}, (err, esp) =>{
+      if (err) return handleError(err);
+
+      //testJSON = JSON.parse(esp)
+
+      console.log(JSON.parse(esp[0].dataArray[0]).current)
+      //testJSON = JSON.stringify(esp.dataArray.get(0))
+      //console.log(testJSON.current)
+      
+      res.json(esp)
+  
+    });
+    */
+
+  espDataCollect.updateMany({uniqueID: espID}, {$push: {dataArray: espDataJSON}, $set: {latestCurrent: current, count: countNum}}, {upsert:true}, function(err){
+    if(err){
+            console.log(err);
+    }else{
+            console.log("Successfully added");
+    }
+  });
+
+  res.send({response:"Data Logged"});
+
+})
+
+//obtain and return all esp objects in the DB
+router.get("/getESPData", function(req, res){
+  espDataCollect.find({}, "uniqueID latestCurrent count", (err, espList) =>{
+    if (err) return handleError(err);
+    
+    res.json(espList)
+
+  });
+
+
+
+})
+
+
 
 //updates page with database info
 //request holds buildingID, machines holding this value are returned
@@ -20,7 +79,7 @@ router.post("/action", function(request, response){
 
   console.log("beginning fetch");
   var selectedBuildingID = sanitize(request.body.buildingID);
-  console.log(selectedBuildingID)
+  //console.log(selectedBuildingID)
   
 
     Machine.find({buildingID: selectedBuildingID}, (err, buildingMachines) =>{
@@ -36,6 +95,33 @@ router.post("/action", function(request, response){
 
 
 //updates page with database info
+//actions have the "keep-alive" header attatched to them. This might need to be changed
+/*
+router.get("/getBuilding", function(request, response){
+
+  console.log("beginning fetch");
+
+  //if we need a username/password for the url, those should be securely stored
+  //(maybe as environment variables)
+    Building.find({}, "name" , (err, buildingNames) =>{
+      if (err) return handleError(err);
+      
+      
+      //console.log(buildingNames)
+
+
+      response.json(buildingNames)
+
+      //console.log(json_parse[0].washers);
+      
+  
+    });
+
+
+});
+*/
+//USING NEW DB!!!
+
 router.get("/getBuilding", function(request, response){
 
   console.log("beginning fetch");
