@@ -26,6 +26,7 @@ router.post("/logESPData", function(req,res){
   //count = req.body.count;
 	
   espDataJSON = JSON.stringify({
+    "count": countNum,
     "current": current,
     "timestamp": timestamp
     })
