@@ -2,7 +2,7 @@
 const mongoose = require("mongoose");
 
 const machineSubscriberSchema = new mongoose.Schema({
-	machineid: Number,
+	subbedMachines: [String],
 	subObj: Object
 });
 

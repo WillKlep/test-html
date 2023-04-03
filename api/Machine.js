@@ -5,7 +5,7 @@ const machineSchema = new mongoose.Schema({
 	state: Boolean,
 	type: String,
 	buildingID: Number,
-	machineID: Number
+	machineID: String
 });
 
 module.exports = mongoose.model("Machine", machineSchema)
