@@ -13,7 +13,8 @@ webpush.setVapidDetails(
 const Machine = require("../Machine");
 const MachineSubscriber = require("../MachineSubscriber");
 const Building = require("../Building");
-const espDataCollect = require("../espDataCollect")
+const espDataCollect = require("../espDataCollect");
+const { count } = require('../Machine');
 
 
 //log the data being obtained by the esp
@@ -95,34 +96,6 @@ router.post("/action", function(request, response){
 });
 
 
-//updates page with database info
-//actions have the "keep-alive" header attatched to them. This might need to be changed
-/*
-router.get("/getBuilding", function(request, response){
-
-  console.log("beginning fetch");
-
-  //if we need a username/password for the url, those should be securely stored
-  //(maybe as environment variables)
-    Building.find({}, "name" , (err, buildingNames) =>{
-      if (err) return handleError(err);
-      
-      
-      //console.log(buildingNames)
-
-
-      response.json(buildingNames)
-
-      //console.log(json_parse[0].washers);
-      
-  
-    });
-
-
-});
-*/
-//USING NEW DB!!!
-
 router.get("/getBuilding", function(request, response){
 
   console.log("beginning fetch");
@@ -172,7 +145,14 @@ let machineID = sanitize(request.body.id);
 let sub = sanitize(request.body.sub);
 
 //store machineID and subscriber in db
-MachineSubscriber.insertMany({machineid: machineID, subObj: sub})
+//MachineSubscriber.insertMany({machineid: machineID, subObj: sub})
+MachineSubscriber.updateOne({subObj: sub}, {$push: {subbedMachines: machineID}}, {upsert:true}, function(err){
+if(err){
+  console.log(err);
+}else{
+  console.log("Successfully added");
+}
+});
 
 
 //the sub object and the message could both be stored in the db. Or, the sub object is stored
@@ -196,6 +176,37 @@ message: "Notification sent"
 
 })
 
+//check washer service for description
+router.post("/subbedList", async function(request, response){
+  let sub = sanitize(request.body.sub);
+
+  MachineSubscriber.find({subObj: sub}, "subbedMachines" , (err, subbedMachinesList) =>{
+
+    //if something is found, use it to obtain the machine list
+    if(subbedMachinesList.length != 0){
+    Machine.find({machineID: {$in: subbedMachinesList[0].subbedMachines}}, (err, machineList) =>{
+      if (err) return handleError(err);
+  
+  
+      response.json(machineList)
+  
+    });
+  }
+  else{
+    //if nothing is found, return nothing
+    response.json([])
+  }
+  
+  
+
+
+  })
+
+  
+  
+})
+
+
 router.post("/removeSubscriber", async function(request, response){
 
 
@@ -205,9 +216,32 @@ let machineID = sanitize(request.body.id);
 let sub = sanitize(request.body.sub);
 
 //delete the subscription from the collection based on the subscription object and machine ID
+/*
 MachineSubscriber.deleteOne({subObj: sub, machineid: machineID}, (err, foundDoc) =>{
   if (err) console.log(err)
 });
+*/
+
+//look for sub object in db that matches, then remove the machineID from the list
+MachineSubscriber.updateOne({subObj: sub}, {$pull:{subbedMachines: machineID}}, {upsert:true}, function(err){
+  if(err){
+    console.log(err);
+  }else{  
+    console.log("Successfully removed subbed machine");
+    
+    //get the subbed machine list after removal
+    MachineSubscriber.find({subObj: sub}, "subbedMachines" , (err, subbedMachinesList) =>{
+      
+      //check if list is empty, if it is, delete document
+      if(subbedMachinesList[0].subbedMachines.length == 0){
+        MachineSubscriber.deleteOne({subObj: sub, machineid: machineID}, (err, foundDoc) =>{
+          if (err) console.log(err)
+        });
+      }
+    });
+  }
+  });
+
 
 
 response.sendStatus(200);
