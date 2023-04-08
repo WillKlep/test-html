@@ -18,6 +18,161 @@ const { count } = require('../Machine');
 
 
 //log the data being obtained by the esp
+router.post("/logLaundryData", function(req,res){
+  
+  //first check if espPswd is correct
+  if(req.body.espPswd == process.env.ESP_PSWD){
+  
+	current = req.body.current;
+  timestamp = Date.now()
+  espID = req.body.espID
+  cscID = req.body.cscID
+  buildingID = req.body.buildingID
+  machineType = req.body.machineType
+  //countNum = req.body.count
+  //count = req.body.count;
+	isActive = false
+
+
+  //find the existing machine entry
+  Machine.find({machineID: cscID}, (err, machineObj) =>{
+    if (err) return handleError(err);
+
+    //check if a machine was found, if none were, then this is a new machine
+    if(machineObj.length != 0){
+
+      //first determine the state of the machine
+    if(machineObj[0].type == "Washer"){
+      
+      //this is where we would put the code for predicting state
+      //isActive = python_predict(current, timestamp)
+      //result of algorithm will be true or false
+
+
+    }
+    else if(machineObj[0].type == "Dryer"){
+      //if the device is a dryer, a simple if statement can be used to determine state
+      if(current > 0){
+        isActive = true
+      }
+      else{
+        isActive = false
+        console.log(isActive)
+      }
+
+
+    }
+
+    //next, check the state transition
+    //machine goes from ON -> OFF, set timestamps and send notifications
+    if(machineObj[0].active && !isActive){
+
+      Machine.updateOne({machineID: machineObj[0].machineID}, {$set: {active: isActive, UNIXtimeWhenOff: timestamp, UNIXtimeWhenUpdate: timestamp}}, function(err){
+        if(err){
+                console.log(err);
+        }else{
+                console.log("Machine" + machineObj[0].machineID + ": ON -> OFF");
+        }
+      });
+
+
+
+      //obtain all subObjs that are monitoring the machine
+      MachineSubscriber.find({subbedMachines: machineObj[0].machineID}, "subObj", function(err, subList){
+        if(err){
+          console.log(err);
+        }else{
+          console.log("Successfully obtained subList");
+        }
+        console.log(subList)
+        
+        //create notification payload
+        let payload = JSON.stringify({
+          "notification": {
+          "title": "Machine Activity",
+          "body": machineObj[0].type + machineObj[0].machineID + "has just finished"
+          }
+          })
+          
+          //send payload to all subObjs
+          for(let i = 0; i < subList.length; i++){
+            //send the notification using the subscriber object and the payload
+          Promise.resolve(webpush.sendNotification(subList[i].subObj, payload))
+          }
+
+          //remove machine ID from all subbedMachine lists that contain it
+            MachineSubscriber.updateMany({subbedMachines: machineObj[0].machineID}, {$pull:{subbedMachines: machineObj[0].machineID}}, {upsert:true}, function(err){
+              if(err){
+                console.log(err);
+              }else{  
+                console.log("Successfully removed subbed machine from all lists");
+              
+              }
+            });
+
+            //delete any subs that have nothing remaining in the subbedMachines list
+            MachineSubscriber.deleteMany({subbedMachines: []}, (err, foundDoc) =>{
+                  if (err) console.log(err)
+                  });
+      
+      });
+        
+
+
+    }
+    //machine goes from OFF -> ON, change state and reset Off timestamp
+    else if (!machineObj[0].active && isActive){
+
+      Machine.updateOne({machineID: cscID}, {$set: {active: isActive, UNIXtimeWhenOff: 0, UNIXtimeWhenUpdate: timestamp}}, function(err){
+        if(err){
+                console.log(err);
+        }else{
+                console.log("Machine" + machineObj[0].machineID + ": OFF -> ON");
+        }
+      });
+
+    }
+    //machine goes from OFF -> OFF, update current time
+    else if(!machineObj[0].active && !isActive){
+      //current timestamp must be saved server side, since the time and timezones of client machines
+      //could be different
+      Machine.updateOne({machineID: cscID}, {$set: {UNIXtimeWhenUpdate: timestamp}}, function(err){
+        if(err){
+                console.log(err);
+        }else{
+                console.log("Machine" + machineObj[0].machineID + ": OFF -> OFF");
+        }
+      });
+    }
+    //Nothing needs to be updated for ON -> ON, this may change if we go beyond on -> off state, and cycles are predicted
+
+
+    
+    res.send({response:"Data Logged"});
+  }
+  else{
+  //if a machine isnt found, then a new entry needs to be created
+  //user must provide:
+  // -the buildingID that the machine is in
+  // -the type of machine that it is
+  //this can either be done via console, via esp, or via manual db insertion
+  Machine.updateOne({espID: espID}, {$set: {active: false, type: machineType, machineID: cscID, buildingID: buildingID, UNIXtimeWhenOff: timestamp, UNIXtimeWhenUpdate: timestamp, UNIXtimeRemaining: 0, errorCodeList:[]}}, {upsert:true}, function(err){
+    if(err){
+            console.log(err);
+    }else{
+            console.log(res.send({response:"New Machine Added"}));
+    }
+  });
+  }
+
+  });
+
+  }
+
+})
+
+
+//log the data being obtained by the esp
 router.post("/logESPData", function(req,res){
   //machine_id = req.body.machine_id;
 	current = req.body.current;
@@ -84,7 +239,7 @@ router.post("/action", function(request, response){
   //console.log(selectedBuildingID)
   
 
-    Machine.find({buildingID: selectedBuildingID}, (err, buildingMachines) =>{
+    Machine.find({buildingID: selectedBuildingID}, "UNIXtimeWhenOff UNIXtimeWhenUpdate active buildingID machineID type errorCodeList", (err, buildingMachines) =>{
       if (err) return handleError(err);
 
 
@@ -153,25 +308,6 @@ if(err){
   console.log("Successfully added");
 }
 });
-
-
-//the sub object and the message could both be stored in the db. Or, the sub object is stored
-//with a reference to the washer/dryer by ID.
-let payload = JSON.stringify({
-"notification": {
-"title": "test",
-"body": "this is the body. machineID= " + machineID
-}
-})
-
-//send the notification using the subscriber object and the payload
-Promise.resolve(webpush.sendNotification(sub, payload)).then(() => response.status(200).json({
-message: "Notification sent"
-})).catch(err => {
-  console.error(err);
-  response.sendStatus(500);
-})
-
 
 
 })
@@ -247,6 +383,47 @@ MachineSubscriber.updateOne({subObj: sub}, {$pull:{subbedMachines: machineID}}, 
 response.sendStatus(200);
 })
 
+//initiates timeoutCheck, which determines if a machine has not received a ping in +3 minutes
+//interval is 3 minutes
+//error code = NO_UPDATES
+const timeoutCheck = setInterval(function() {
+  console.log("Checking connection of all machines...")
+  currentTime = Date.now()
+  errorCode = "NO_UPDATES"
+  
+  //obtain all machines, iterate through and check if each machine hasn't been updated in 3 minutes
+  Machine.find({}, (err, allMachines) =>{
+    if (err) return handleError(err);
 
+    if(allMachines.length != 0){
+      for(let i = 0; i < allMachines.length; i++){
+
+        //if a machine hasn't gotten an update in the last 3 minutes, and they dont have the errorcode, add it to list
+        if((Math.trunc((currentTime - allMachines[i].UNIXtimeWhenUpdate)/1000/60) > 3) && !allMachines[i].errorCodeList.includes(errorCode)){
+          
+          Machine.updateOne({machineID : allMachines[i].machineID}, {$push: {errorCodeList: errorCode}}, function(err){
+            if(err){
+              console.log(err);
+            }else{  
+              console.log("Machine " + allMachines[i].machineID +" Lost Connection")}})
+
+        }
+        //if a machine has gotten an update in the last 3 minutes and has the errorcode, remove it from list
+        else if((Math.trunc((currentTime - allMachines[i].UNIXtimeWhenUpdate)/1000/60) < 3) && allMachines[i].errorCodeList.includes(errorCode)){
+          Machine.updateOne({machineID : allMachines[i].machineID}, {$pull: {errorCodeList: errorCode}}, function(err){
+            if(err){
+              console.log(err);
+            }else{  
+              console.log("Machine " + allMachines[i].machineID +" Restored Connection")}})
+        }
+
+      }
+    }
+
+
+
+  });
+
+}, 300000);
 
 module.exports = router;
