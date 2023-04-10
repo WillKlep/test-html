@@ -1,6 +1,7 @@
 //Structure of a washer/dryer object in DB
 const mongoose = require("mongoose")
 
+
 const machineSchema = new mongoose.Schema({
 	active: Boolean,
 	type: String,
@@ -10,7 +11,19 @@ const machineSchema = new mongoose.Schema({
 	UNIXtimeWhenOff: Number,
 	UNIXtimeWhenUpdate: Number,
 	UNIXcycleTimeRemaining: Number,
-	errorCodeList: [String]
+	errorCodeList: [String],
+	dataArray: []
+},{
+	toObject: {virtuals:true},
+	toJSON: {virtuals:true}
 });
+
+//foreign key for buildingID
+machineSchema.virtual('building', {
+    ref: 'Building',
+    localField: 'buildingID',
+    foreignField: 'buildingID',
+	justOne: true
+  });
 
 module.exports = mongoose.model("Machine", machineSchema)
