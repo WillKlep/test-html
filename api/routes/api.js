@@ -357,7 +357,7 @@ MachineSubscriber.updateOne({subObj: sub}, {$pull:{subbedMachines: machineID}}, 
 response.sendStatus(200);
 })
 
-//initiates timeoutCheck, which determines if a machine has not received a ping in +3 minutes
+//initiates timeoutCheck, which determines if a machine has not received a ping in +2 minutes
 //interval is 3 minutes
 //error code = NO_UPDATES
 const timeoutCheck = setInterval(function() {
@@ -372,9 +372,9 @@ const timeoutCheck = setInterval(function() {
     if(allMachines.length != 0){
       for(let i = 0; i < allMachines.length; i++){
 
-        //if a machine hasn't gotten an update in the last 3 minutes, and they dont have the errorcode, add it to list
+        //if a machine hasn't gotten an update in the last 2 minutes, and they dont have the errorcode, add it to list
         //also, send error notifications to all users who are watching the machine
-        if((Math.trunc((currentTime - allMachines[i].UNIXtimeWhenUpdate)/1000/60) > .2) && !allMachines[i].errorCodeList.includes(errorCode)){
+        if((Math.trunc((currentTime - allMachines[i].UNIXtimeWhenUpdate)/1000/60) > 2) && !allMachines[i].errorCodeList.includes(errorCode)){
           
           Machine.updateOne({machineID : allMachines[i].machineID}, {$push: {errorCodeList: errorCode}}, function(err){
             if(err){
@@ -389,7 +389,7 @@ const timeoutCheck = setInterval(function() {
 
         }
         //if a machine has gotten an update in the last 3 minutes and has the errorcode, remove it from list
-        else if((Math.trunc((currentTime - allMachines[i].UNIXtimeWhenUpdate)/1000/60) < .2) && allMachines[i].errorCodeList.includes(errorCode)){
+        else if((Math.trunc((currentTime - allMachines[i].UNIXtimeWhenUpdate)/1000/60) < 2) && allMachines[i].errorCodeList.includes(errorCode)){
           Machine.updateOne({machineID : allMachines[i].machineID}, {$pull: {errorCodeList: errorCode}}, function(err){
             if(err){
               console.log(err);
@@ -404,7 +404,7 @@ const timeoutCheck = setInterval(function() {
 
   }).populate('building');
 
-}, 5000);
+}, 180000);
 
 //sends notifications to all subscribers monitoring the machine with the given ID
 function sendNotifications(machineID, notifyTitle, notifyBody){
