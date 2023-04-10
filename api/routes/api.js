@@ -14,8 +14,6 @@ const Machine = require("../Machine");
 const MachineSubscriber = require("../MachineSubscriber");
 const Building = require("../Building");
 const espDataCollect = require("../espDataCollect");
-const { count } = require('../Machine');
-
 
 //log the data being obtained by the esp
 router.post("/logLaundryData", function(req,res){
@@ -23,15 +21,20 @@ router.post("/logLaundryData", function(req,res){
   //first check if espPswd is correct
   if(req.body.espPswd == process.env.ESP_PSWD){
   
-	current = req.body.current;
+	current = sanitize(req.body.current);
   timestamp = Date.now()
-  espID = req.body.espID
-  cscID = req.body.cscID
-  buildingID = req.body.buildingID
-  machineType = req.body.machineType
-  //countNum = req.body.count
-  //count = req.body.count;
+  espID = sanitize(req.body.espID)
+  cscID = sanitize(req.body.cscID)
+  buildingID = sanitize(req.body.buildingID)
+  machineType = sanitize(req.body.machineType)
+  countNum = sanitize(req.body.count)
 	isActive = false
+
+  espDataJSON = JSON.stringify({
+    "count": countNum,
+    "current": current,
+    "timestamp": timestamp
+    })
 
 
   //find the existing machine entry
@@ -67,7 +70,7 @@ router.post("/logLaundryData", function(req,res){
     //machine goes from ON -> OFF, set timestamps and send notifications
     if(machineObj[0].active && !isActive){
 
-      Machine.updateOne({machineID: machineObj[0].machineID}, {$set: {active: isActive, UNIXtimeWhenOff: timestamp, UNIXtimeWhenUpdate: timestamp}}, function(err){
+      Machine.updateOne({machineID: machineObj[0].machineID}, {$push: {dataArray: espDataJSON}, $set: {active: isActive, UNIXtimeWhenOff: timestamp, UNIXtimeWhenUpdate: timestamp}}, function(err){
         if(err){
                 console.log(err);
         }else{
@@ -75,47 +78,9 @@ router.post("/logLaundryData", function(req,res){
         }
       });
 
+      notifyBody = machineObj[0].type + machineObj[0].machineID + " (" + machineObj[0].building.name + ") has just finished"
 
-
-      //obtain all subObjs that are monitoring the machine
-      MachineSubscriber.find({subbedMachines: machineObj[0].machineID}, "subObj", function(err, subList){
-        if(err){
-          console.log(err);
-        }else{
-          console.log("Successfully obtained subList");
-        }
-        console.log(subList)
-        
-        //create notification payload
-        let payload = JSON.stringify({
-          "notification": {
-          "title": "Machine Activity",
-          "body": machineObj[0].type + machineObj[0].machineID + "has just finished"
-          }
-          })
-          
-          //send payload to all subObjs
-          for(let i = 0; i < subList.length; i++){
-            //send the notification using the subscriber object and the payload
-          Promise.resolve(webpush.sendNotification(subList[i].subObj, payload))
-          }
-
-          //remove machine ID from all subbedMachine lists that contain it
-            MachineSubscriber.updateMany({subbedMachines: machineObj[0].machineID}, {$pull:{subbedMachines: machineObj[0].machineID}}, {upsert:true}, function(err){
-              if(err){
-                console.log(err);
-              }else{  
-                console.log("Successfully removed subbed machine from all lists");
-              
-              }
-            });
-
-            //delete any subs that have nothing remaining in the subbedMachines list
-            MachineSubscriber.deleteMany({subbedMachines: []}, (err, foundDoc) =>{
-                  if (err) console.log(err)
-                  });
-      
-      });
+      sendNotifications(machineObj[0].machineID, "Machine Activity",notifyBody);
         
 
 
@@ -123,7 +88,7 @@ router.post("/logLaundryData", function(req,res){
     //machine goes from OFF -> ON, change state and reset Off timestamp
     else if (!machineObj[0].active && isActive){
 
-      Machine.updateOne({machineID: cscID}, {$set: {active: isActive, UNIXtimeWhenOff: 0, UNIXtimeWhenUpdate: timestamp}}, function(err){
+      Machine.updateOne({machineID: cscID}, {$push: {dataArray: espDataJSON}, $set: {active: isActive, UNIXtimeWhenOff: 0, UNIXtimeWhenUpdate: timestamp}}, function(err){
         if(err){
                 console.log(err);
         }else{
@@ -136,7 +101,7 @@ router.post("/logLaundryData", function(req,res){
     else if(!machineObj[0].active && !isActive){
       //current timestamp must be saved server side, since the time and timezones of client machines
       //could be different
-      Machine.updateOne({machineID: cscID}, {$set: {UNIXtimeWhenUpdate: timestamp}}, function(err){
+      Machine.updateOne({machineID: cscID}, {$push: {dataArray: espDataJSON}, $set: {UNIXtimeWhenUpdate: timestamp}}, function(err){
         if(err){
                 console.log(err);
         }else{
@@ -144,8 +109,17 @@ router.post("/logLaundryData", function(req,res){
         }
       });
     }
-    //Nothing needs to be updated for ON -> ON, this may change if we go beyond on -> off state, and cycles are predicted
-
+    //machine goes from ON -> ON, update current timestamp
+    else if (machineObj[0].active && isActive){
+      
+      Machine.updateOne({machineID: cscID}, {$push: {dataArray: espDataJSON}, $set: {UNIXtimeWhenUpdate: timestamp}}, function(err){
+        if(err){
+                console.log(err);
+        }else{
+                console.log("Machine" + machineObj[0].machineID + ": ON -> ON");
+        }
+      });
+    }
 
     
     res.send({response:"Data Logged"});
@@ -156,7 +130,7 @@ router.post("/logLaundryData", function(req,res){
   // -the buildingID that the machine is in
   // -the type of machine that it is
   //this can either be done via console, via esp, or via manual db insertion
-  Machine.updateOne({espID: espID}, {$set: {active: false, type: machineType, machineID: cscID, buildingID: buildingID, UNIXtimeWhenOff: timestamp, UNIXtimeWhenUpdate: timestamp, UNIXtimeRemaining: 0, errorCodeList:[]}}, {upsert:true}, function(err){
+  Machine.updateOne({espID: espID}, {$push: {dataArray: espDataJSON}, $set: {active: false, type: machineType, machineID: cscID, buildingID: buildingID, UNIXtimeWhenOff: timestamp, UNIXtimeWhenUpdate: timestamp, UNIXtimeRemaining: 0, errorCodeList:[]}}, {upsert:true}, function(err){
     if(err){
             console.log(err);
     }else{
@@ -165,7 +139,7 @@ router.post("/logLaundryData", function(req,res){
   });
   }
 
-  });
+  }).populate('building');
 
   }
 
@@ -399,17 +373,23 @@ const timeoutCheck = setInterval(function() {
       for(let i = 0; i < allMachines.length; i++){
 
         //if a machine hasn't gotten an update in the last 3 minutes, and they dont have the errorcode, add it to list
-        if((Math.trunc((currentTime - allMachines[i].UNIXtimeWhenUpdate)/1000/60) > 3) && !allMachines[i].errorCodeList.includes(errorCode)){
+        //also, send error notifications to all users who are watching the machine
+        if((Math.trunc((currentTime - allMachines[i].UNIXtimeWhenUpdate)/1000/60) > .2) && !allMachines[i].errorCodeList.includes(errorCode)){
           
           Machine.updateOne({machineID : allMachines[i].machineID}, {$push: {errorCodeList: errorCode}}, function(err){
             if(err){
               console.log(err);
-            }else{  
+            }else{
+
+              notifyBody = allMachines[0].type + " " + allMachines[0].machineID + " (" + allMachines[0].building.name +") has lost connection and is no longer updating"
+
+              sendNotifications(allMachines[0].machineID, "Machine Lost Connection",notifyBody);
+
               console.log("Machine " + allMachines[i].machineID +" Lost Connection")}})
 
         }
         //if a machine has gotten an update in the last 3 minutes and has the errorcode, remove it from list
-        else if((Math.trunc((currentTime - allMachines[i].UNIXtimeWhenUpdate)/1000/60) < 3) && allMachines[i].errorCodeList.includes(errorCode)){
+        else if((Math.trunc((currentTime - allMachines[i].UNIXtimeWhenUpdate)/1000/60) < .2) && allMachines[i].errorCodeList.includes(errorCode)){
           Machine.updateOne({machineID : allMachines[i].machineID}, {$pull: {errorCodeList: errorCode}}, function(err){
             if(err){
               console.log(err);
@@ -422,8 +402,57 @@ const timeoutCheck = setInterval(function() {
 
 
 
-  });
+  }).populate('building');
 
-}, 300000);
+}, 5000);
+
+//sends notifications to all subscribers monitoring the machine with the given ID
+function sendNotifications(machineID, notifyTitle, notifyBody){
+//obtain all subObjs that are monitoring the machine
+MachineSubscriber.find({subbedMachines: machineID}, "subObj", function(err, subList){
+  if(err){
+    console.log(err);
+  }else{
+    console.log("Successfully obtained subList");
+  }
+  console.log(subList)
+  
+  //create notification payload
+  let payload = JSON.stringify({
+    "notification": {
+    "title": notifyTitle,
+    "body": notifyBody
+    }
+    })
+    
+    //send payload to all subObjs
+    for(let i = 0; i < subList.length; i++){
+      //send the notification using the subscriber object and the payload
+    Promise.resolve(webpush.sendNotification(subList[i].subObj, payload))
+    }
+
+    //remove machine ID from all subbedMachine lists that contain it
+      MachineSubscriber.updateMany({subbedMachines: machineID}, {$pull:{subbedMachines: machineID}}, function(err){
+        if(err){
+          console.log(err);
+        }else{  
+          console.log("Successfully removed subbed machine from all lists");
+        
+        }
+      });
+
+      //delete any subs that have nothing remaining in the subbedMachines list
+      MachineSubscriber.deleteMany({subbedMachines: []}, (err) =>{
+            if (err) console.log(err)
+            });
+
+});
+
+
+}
+
+
+
+
 
 module.exports = router;
