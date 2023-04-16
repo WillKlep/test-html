@@ -9,6 +9,7 @@ const machineSchema = new mongoose.Schema({
 	machineID: String,
 	espID: String,
 	UNIXtimeWhenOff: Number,
+	UNIXtimeWhenOn: Number,
 	UNIXtimeWhenUpdate: Number,
 	UNIXcycleTimeRemaining: Number,
 	errorCodeList: [String],
