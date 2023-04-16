@@ -70,7 +70,7 @@ router.post("/logLaundryData", function(req,res){
     //machine goes from ON -> OFF, set timestamps and send notifications
     if(machineObj[0].active && !isActive){
 
-      Machine.updateOne({machineID: machineObj[0].machineID}, {$push: {dataArray: espDataJSON}, $set: {active: isActive, UNIXtimeWhenOff: timestamp, UNIXtimeWhenUpdate: timestamp}}, function(err){
+      Machine.updateOne({machineID: machineObj[0].machineID}, {$push: {dataArray: espDataJSON}, $set: {active: isActive, UNIXtimeWhenOff: timestamp, UNIXtimeWhenOn: 0, UNIXtimeWhenUpdate: timestamp}}, function(err){
         if(err){
                 console.log(err);
         }else{
@@ -85,10 +85,10 @@ router.post("/logLaundryData", function(req,res){
 
 
     }
-    //machine goes from OFF -> ON, change state and reset Off timestamp
+    //machine goes from OFF -> ON, change state and set timestamps
     else if (!machineObj[0].active && isActive){
 
-      Machine.updateOne({machineID: cscID}, {$push: {dataArray: espDataJSON}, $set: {active: isActive, UNIXtimeWhenOff: 0, UNIXtimeWhenUpdate: timestamp}}, function(err){
+      Machine.updateOne({machineID: cscID}, {$push: {dataArray: espDataJSON}, $set: {active: isActive, UNIXtimeWhenOff: 0, UNIXtimeWhenOn: timestamp, UNIXtimeWhenUpdate: timestamp}}, function(err){
         if(err){
                 console.log(err);
         }else{
@@ -266,7 +266,7 @@ router.get("/getBuilding", function(request, response){
 // Database storing MUST be secured with a username/password.
 router.post("/storeSubscriber", async function(request, response){
 
-let machineID = sanitize(request.body.id);
+let machineIDList = sanitize(request.body.id);
   //this needs to be stored in a database. When the event occurs (on to off or whatever), obtain all people who
   //want notifications and send it to them. Afterwards, delete from database
 
@@ -275,11 +275,12 @@ let sub = sanitize(request.body.sub);
 
 //store machineID and subscriber in db
 //MachineSubscriber.insertMany({machineid: machineID, subObj: sub})
-MachineSubscriber.updateOne({subObj: sub}, {$push: {subbedMachines: machineID}}, {upsert:true}, function(err){
+MachineSubscriber.updateOne({subObj: sub}, {$push: {subbedMachines: machineIDList}}, {upsert:true}, function(err){
 if(err){
   console.log(err);
 }else{
   console.log("Successfully added");
+  response.sendStatus(200)
 }
 });
 
@@ -321,7 +322,7 @@ router.post("/removeSubscriber", async function(request, response){
 
 
 //obtain the machineID and the subObj
-let machineID = sanitize(request.body.id);
+let machineIDList = sanitize(request.body.id);
   
 let sub = sanitize(request.body.sub);
 
@@ -333,7 +334,7 @@ MachineSubscriber.deleteOne({subObj: sub, machineid: machineID}, (err, foundDoc)
 */
 
 //look for sub object in db that matches, then remove the machineID from the list
-MachineSubscriber.updateOne({subObj: sub}, {$pull:{subbedMachines: machineID}}, {upsert:true}, function(err){
+MachineSubscriber.updateOne({subObj: sub}, {$pull:{subbedMachines: {$in: machineIDList}}}, {upsert:true}, function(err){
   if(err){
     console.log(err);
   }else{  
@@ -344,7 +345,7 @@ MachineSubscriber.updateOne({subObj: sub}, {$pull:{subbedMachines: machineID}}, 
       
       //check if list is empty, if it is, delete document
       if(subbedMachinesList[0].subbedMachines.length == 0){
-        MachineSubscriber.deleteOne({subObj: sub, machineid: machineID}, (err, foundDoc) =>{
+        MachineSubscriber.deleteOne({subObj: sub, machineid: machineIDList}, (err, foundDoc) =>{
           if (err) console.log(err)
         });
       }
@@ -381,9 +382,9 @@ const timeoutCheck = setInterval(function() {
               console.log(err);
             }else{
 
-              notifyBody = allMachines[0].type + " " + allMachines[0].machineID + " (" + allMachines[0].building.name +") has lost connection and is no longer updating"
+              notifyBody = allMachines[i].type + " " + allMachines[i].machineID + " (" + allMachines[i].building.name +") has lost connection and is no longer updating"
 
-              sendNotifications(allMachines[0].machineID, "Machine Lost Connection",notifyBody);
+              sendNotifications(allMachines[i].machineID, "Machine Lost Connection",notifyBody);
 
               console.log("Machine " + allMachines[i].machineID +" Lost Connection")}})
 
@@ -414,6 +415,7 @@ MachineSubscriber.find({subbedMachines: machineID}, "subObj", function(err, subL
     console.log(err);
   }else{
     console.log("Successfully obtained subList");
+    console.log(subList)
   }
   
   //create notification payload
@@ -427,7 +429,10 @@ MachineSubscriber.find({subbedMachines: machineID}, "subObj", function(err, subL
     //send payload to all subObjs
     for(let i = 0; i < subList.length; i++){
       //send the notification using the subscriber object and the payload
-    Promise.resolve(webpush.sendNotification(subList[i].subObj, payload))
+      //catches any notifications with expired endpoints.
+    Promise.resolve(webpush.sendNotification(subList[i].subObj, payload)).catch((error) => {
+      console.log(error)})
+
     }
 
     //remove machine ID from all subbedMachine lists that contain it
