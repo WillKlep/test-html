@@ -15,6 +15,11 @@ const MachineSubscriber = require("../MachineSubscriber");
 const Building = require("../Building");
 const espDataCollect = require("../espDataCollect");
 
+const WASHER_STATE_DELAY_MINUTES = 5
+const CHECK_CONNECTION_INTERVAL_MILLISEC = 5000
+const CONNECTION_ERROR_WAIT_MINUTES = 3
+
+
 //at what current level is the machine considered running
 const DRYER_ACTIVE_THRESHOLD = 1
 const WASHER_ACTIVE_THRESHOLD = 1
@@ -71,7 +76,7 @@ function checkWasherState(current, timeWhenOff, currentTime){
   if(current < WASHER_ACTIVE_THRESHOLD){
 
     //if the washer has been off for more than 5 mins, then it is off
-  if(currentTime/1000/60-timeWhenOff/1000/60 > .5){
+  if(currentTime/1000/60-timeWhenOff/1000/60 > WASHER_STATE_DELAY_MINUTES){
     return false
   }
   else{
@@ -545,7 +550,7 @@ const timeoutCheck = setInterval(function() {
 
         //if a machine hasn't gotten an update in the last 3 minutes, and they dont have the errorcode, add it to list
         //also, send error notifications to all users who are watching the machine
-        if((Math.trunc((currentTime - allMachines[i].UNIXtimeWhenUpdate)/1000/60) > 3) && !allMachines[i].errorCodeList.includes(errorCode)){
+        if((Math.trunc((currentTime - allMachines[i].UNIXtimeWhenUpdate)/1000/60) > CONNECTION_ERROR_WAIT_MINUTES) && !allMachines[i].errorCodeList.includes(errorCode)){
           
           Machine.updateOne({machineID : allMachines[i].machineID}, {$push: {errorCodeList: errorCode}}, function(err){
             if(err){
@@ -560,7 +565,7 @@ const timeoutCheck = setInterval(function() {
 
         }
         //if a machine has gotten an update in the last 3 minutes and has the errorcode, remove it from list
-        else if((Math.trunc((currentTime - allMachines[i].UNIXtimeWhenUpdate)/1000/60) < 3) && allMachines[i].errorCodeList.includes(errorCode)){
+        else if((Math.trunc((currentTime - allMachines[i].UNIXtimeWhenUpdate)/1000/60) < CONNECTION_ERROR_WAIT_MINUTES) && allMachines[i].errorCodeList.includes(errorCode)){
           Machine.updateOne({machineID : allMachines[i].machineID}, {$pull: {errorCodeList: errorCode}}, function(err){
             if(err){
               console.log(err);
@@ -575,7 +580,7 @@ const timeoutCheck = setInterval(function() {
 
   }).populate('building');
 
-}, 5000);
+}, CHECK_CONNECTION_INTERVAL_MILLISEC);
 
 //sends notifications to all subscribers monitoring the machine with the given ID
 function sendNotifications(machineID, notifyTitle, notifyBody){
