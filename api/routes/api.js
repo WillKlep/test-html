@@ -15,6 +15,77 @@ const MachineSubscriber = require("../MachineSubscriber");
 const Building = require("../Building");
 const espDataCollect = require("../espDataCollect");
 
+//at what current level is the machine considered running
+const DRYER_ACTIVE_THRESHOLD = 1
+const WASHER_ACTIVE_THRESHOLD = 1
+
+//cycle current ranges
+const WASH_CURRENT_MIN = 9
+const WASH_CURRENT_MAX = 15
+
+const RINSE_CURRENT_MIN = 7
+const RINSE_CURRENT_MAX = 8
+
+const SPIN_CURRENT_MIN = 7
+const SPIN_CURRENT_MAX = 8
+
+//the start times of each cycle instance
+const RINSE_TIME_ELAPSED = [10, 22]
+const SPIN_TIME_ELAPSED = [13, 25]
+
+function determineWashCycle(current, timeWhenOn, currentTime, isActive){
+
+  timeElapsed = (currentTime - timeWhenOn)/1000/60
+
+
+  //if washer isnt active, then its off
+  if(!isActive){
+    return "Off"
+  }
+  //if current falls within rinse range, and also falls within the minute ranges for rinse
+  else if(current >= RINSE_CURRENT_MIN && current <= RINSE_CURRENT_MAX && (timeElapsed >= RINSE_TIME_ELAPSED[0] && timeElapsed < SPIN_TIME_ELAPSED[0] || timeElapsed >= RINSE_TIME_ELAPSED[1] && timeElapsed < SPIN_TIME_ELAPSED[1])){
+	  return "Rinse Cycle"
+	}
+  //if current falls within spin range, and also falls within the minute ranges for spin
+	else if(current >= SPIN_CURRENT_MIN && current <= SPIN_CURRENT_MAX && (timeElapsed >= SPIN_TIME_ELAPSED[0] && timeElapsed < RINSE_TIME_ELAPSED[1] || timeElapsed >= SPIN_TIME_ELAPSED[1])){
+	  return "Spin Cycle"
+	}
+  //if none of the above conditions are met, then check if the current is above the wash cycle minimum
+	else if(current >= WASH_CURRENT_MIN){
+		return "Wash Cycle"
+	}
+	else{
+    //defaults to On if none of the above conditions are met
+		return "On"
+	}
+
+
+}
+
+
+//checks the state of the washer, assuming it is currently on in the db
+function checkWasherState(current, timeWhenOff, currentTime){
+
+  //if the current is below threshold, that does not mean its done
+  //check timeout period
+  if(current < WASHER_ACTIVE_THRESHOLD){
+
+    //if the washer has been off for more than 5 mins, then it is off
+  if(currentTime/1000/60-timeWhenOff/1000/60 > .5){
+    return false
+  }
+  else{
+    //if the washer has been off for less than 5 mins, it could be filling water, return true
+    return true
+  }
+  }
+  else{
+  //the current is higher than the threshold, return true
+  return true
+  }
+
+}
+
 //log the data being obtained by the esp
 router.post("/logLaundryData", function(req,res){
   
@@ -25,17 +96,17 @@ router.post("/logLaundryData", function(req,res){
   timestamp = Date.now()
   espID = sanitize(req.body.espID)
   cscID = sanitize(req.body.cscID)
-  buildingID = sanitize(req.body.buildingID)
+  ESPbuildingName = sanitize(req.body.buildingName)
   machineType = sanitize(req.body.machineType)
   countNum = sanitize(req.body.count)
 	isActive = false
+  determinedCycle = "UNSET"
 
   espDataJSON = JSON.stringify({
     "count": countNum,
     "current": current,
     "timestamp": timestamp
     })
-
 
   //find the existing machine entry
   Machine.find({machineID: cscID}, (err, machineObj) =>{
@@ -44,39 +115,72 @@ router.post("/logLaundryData", function(req,res){
     //check if a machine was found, if none were, then this is a new machine
     if(machineObj.length != 0){
 
-      //first determine the state of the machine
+
+    //first determine the type of the machine
     if(machineObj[0].type == "Washer"){
-      
-      //this is where we would put the code for predicting state
-      //isActive = python_predict(current, timestamp)
-      //result of algorithm will be true or false
+
+
+
+      //if the washer is going from ON to OFF AND its timeWhenOff is currently below threshold, check the washerState by passing in
+      //the current timestamp as timeWhenOff
+      if(current < WASHER_ACTIVE_THRESHOLD && machineObj[0].active && machineObj[0].UNIXtimeWhenOff == 0){
+      isActive = checkWasherState(current, timestamp, timestamp)
+      }
+      else{
+      //otherwise, use existing timeWhenOff timestamp
+      isActive = checkWasherState(current, machineObj[0].UNIXtimeWhenOff, timestamp)
+      }
+
+      //since washer has been determined to be active, rough guess the cycle
+      //if the washer is going from OFF -> ON, use timestamp in place of timeWhenOn, since that has not updated yet
+      if(isActive && machineObj[0].UNIXtimeWhenOn == 0){
+        determinedCycle = determineWashCycle(current, timestamp, timestamp, isActive)
+      }
+      else{
+        determinedCycle = determineWashCycle(current, machineObj[0].UNIXtimeWhenOn, timestamp, isActive)
+      }
 
 
     }
     else if(machineObj[0].type == "Dryer"){
       //if the device is a dryer, a simple if statement can be used to determine state
-      if(current > 0){
+      if(current >= DRYER_ACTIVE_THRESHOLD){
         isActive = true
+        determinedCycle = "On"
       }
       else{
         isActive = false
-        console.log(isActive)
+        determinedCycle = "Off"
       }
 
 
     }
 
     //next, check the state transition
-    //machine goes from ON -> OFF, set timestamps and send notifications
+    //machine goes from ON -> OFF, set state, cycle, timestamps, and send notifications
     if(machineObj[0].active && !isActive){
 
-      Machine.updateOne({machineID: machineObj[0].machineID}, {$push: {dataArray: espDataJSON}, $set: {active: isActive, UNIXtimeWhenOff: timestamp, UNIXtimeWhenOn: 0, UNIXtimeWhenUpdate: timestamp}}, function(err){
+      //if the machine is a washer, then UNIXtimeWhenOff should NOT be set, since it is already set during state ON -> ON for checking delay
+      if(machineObj[0].type == "Washer"){
+      Machine.updateOne({machineID: machineObj[0].machineID}, {$push: {dataArray: espDataJSON}, $set: {active: isActive, cycle: determinedCycle, UNIXtimeWhenOn: 0, UNIXtimeWhenUpdate: timestamp}}, function(err){
         if(err){
                 console.log(err);
         }else{
                 console.log("Machine" + machineObj[0].machineID + ": ON -> OFF");
         }
       });
+    }
+    else{
+
+      Machine.updateOne({machineID: machineObj[0].machineID}, {$push: {dataArray: espDataJSON}, $set: {active: isActive, cycle: determinedCycle, UNIXtimeWhenOff: timestamp, UNIXtimeWhenOn: 0, UNIXtimeWhenUpdate: timestamp}}, function(err){
+        if(err){
+                console.log(err);
+        }else{
+                console.log("Machine" + machineObj[0].machineID + ": ON -> OFF");
+        }
+      });
+    }
+
 
       notifyBody = machineObj[0].type + " " + machineObj[0].machineID + " (" + machineObj[0].building.name + ") has just finished"
 
@@ -85,10 +189,10 @@ router.post("/logLaundryData", function(req,res){
 
 
     }
-    //machine goes from OFF -> ON, change state and set timestamps
+    //machine goes from OFF -> ON, change state, cycle,  and set timestamps
     else if (!machineObj[0].active && isActive){
 
-      Machine.updateOne({machineID: cscID}, {$push: {dataArray: espDataJSON}, $set: {active: isActive, UNIXtimeWhenOff: 0, UNIXtimeWhenOn: timestamp, UNIXtimeWhenUpdate: timestamp}}, function(err){
+      Machine.updateOne({machineID: cscID}, {$push: {dataArray: espDataJSON}, $set: {active: isActive, cycle: determinedCycle, UNIXtimeWhenOff: 0, UNIXtimeWhenOn: timestamp, UNIXtimeWhenUpdate: timestamp}}, function(err){
         if(err){
                 console.log(err);
         }else{
@@ -97,11 +201,10 @@ router.post("/logLaundryData", function(req,res){
       });
 
     }
-    //machine goes from OFF -> OFF, update current time
+    //machine goes from OFF -> OFF, update current time and cycle
     else if(!machineObj[0].active && !isActive){
-      //current timestamp must be saved server side, since the time and timezones of client machines
-      //could be different
-      Machine.updateOne({machineID: cscID}, {$push: {dataArray: espDataJSON}, $set: {UNIXtimeWhenUpdate: timestamp}}, function(err){
+
+      Machine.updateOne({machineID: cscID}, {$push: {dataArray: espDataJSON}, $set: {cycle: determinedCycle, UNIXtimeWhenUpdate: timestamp}}, function(err){
         if(err){
                 console.log(err);
         }else{
@@ -109,10 +212,22 @@ router.post("/logLaundryData", function(req,res){
         }
       });
     }
-    //machine goes from ON -> ON, update current timestamp
+    //machine goes from ON -> ON, update current timestamp and predicted cycle
     else if (machineObj[0].active && isActive){
       
-      Machine.updateOne({machineID: cscID}, {$push: {dataArray: espDataJSON}, $set: {UNIXtimeWhenUpdate: timestamp}}, function(err){
+      //if the current is < threshold, but it has been determined that the machine is still on, update UNIXtimeWhenOff as well
+      if(current < WASHER_ACTIVE_THRESHOLD && machineObj[0].UNIXtimeWhenOff == 0){
+        Machine.updateOne({machineID: cscID}, {$push: {dataArray: espDataJSON}, $set: {cycle: determinedCycle, UNIXtimeWhenOff: timestamp, UNIXtimeWhenUpdate: timestamp}}, function(err){
+          if(err){
+                  console.log(err);
+          }else{
+                  console.log("Machine" + machineObj[0].machineID + ": ON -> ON");
+          }
+        });
+
+    }
+    else{
+      Machine.updateOne({machineID: cscID}, {$push: {dataArray: espDataJSON}, $set: {cycle: determinedCycle, UNIXtimeWhenUpdate: timestamp}}, function(err){
         if(err){
                 console.log(err);
         }else{
@@ -121,22 +236,77 @@ router.post("/logLaundryData", function(req,res){
       });
     }
 
+    }
+
     
     res.send({response:"Data Logged"});
   }
   else{
   //if a machine isnt found, then a new entry needs to be created
   //user must provide:
-  // -the buildingID that the machine is in
+  // -the buildingName that the machine is in
   // -the type of machine that it is
-  //this can either be done via console, via esp, or via manual db insertion
-  Machine.updateOne({espID: espID}, {$push: {dataArray: espDataJSON}, $set: {active: false, type: machineType, machineID: cscID, buildingID: buildingID, UNIXtimeWhenOff: timestamp, UNIXtimeWhenUpdate: timestamp, UNIXtimeRemaining: 0, errorCodeList:[]}}, {upsert:true}, function(err){
+  // -the MAC address of the ESP (or unique indicator of device)
+  //manual data is sent from ESP
+  Building.find( (err, allBuildings) => {
     if(err){
-            console.log(err);
+      console.log("error finding all buildings");
     }else{
-            console.log(res.send({response:"New Machine Added"}));
+
+      let foundBuilding = false
+      let foundBuildingID = -1
+      
+      //if a building received name wasn't found, create a new building
+      for(let i = 0; i < allBuildings.length; i++){
+        console.log(allBuildings[i].name)
+        if(allBuildings[i].name == ESPbuildingName){
+          foundBuilding = true
+
+          foundBuildingID = allBuildings[i].buildingID
+          
+        }
+      }
+
+      if(!foundBuilding){
+        
+        Building.updateOne({buildingID: foundBuildingID}, { $set: {name: ESPbuildingName, buildingID : allBuildings.length+1}}, {upsert:true}, function(err){
+          if(err){
+            console.log("error inserting building");
+          }
+        })
+
+        foundBuildingID = allBuildings.length+1
+        
+      }
+
+      //add machine to db
+      Machine.updateOne({machineID: cscID}, {$push: {dataArray: espDataJSON}, $set: {
+        active: false,
+        cycle: "UNSET",
+        type: machineType,
+        machineID: cscID,
+        espID: espID,
+        buildingID: foundBuildingID,
+        UNIXtimeWhenOff: timestamp,
+        UNIXtimeWhenUpdate: timestamp,
+        UNIXtimeWhenOn: 0,
+        errorCodeList:[]}}, {upsert:true}, function(err){
+        if(err){
+                console.log("error inserting machine");
+        }else{
+                console.log(res.send({response:"New Machine Added"}));
+        }
+      });
+
+      
+
     }
-  });
+
+
+  })
+  
+  
+  
   }
 
   }).populate('building');
@@ -213,7 +383,7 @@ router.post("/action", function(request, response){
   //console.log(selectedBuildingID)
   
 
-    Machine.find({buildingID: selectedBuildingID}, "UNIXtimeWhenOff UNIXtimeWhenUpdate active buildingID machineID type errorCodeList", (err, buildingMachines) =>{
+    Machine.find({buildingID: selectedBuildingID}, "UNIXtimeWhenOff UNIXtimeWhenUpdate UNIXtimeWhenOn cycle active buildingID machineID type errorCodeList", (err, buildingMachines) =>{
       if (err) return handleError(err);
 
 
