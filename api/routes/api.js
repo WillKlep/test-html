@@ -292,7 +292,7 @@ router.post("/logLaundryData", function(req,res){
         machineID: cscID,
         espID: espID,
         buildingID: foundBuildingID,
-        UNIXtimeWhenOff: timestamp,
+        UNIXtimeWhenOff: 0,
         UNIXtimeWhenUpdate: timestamp,
         UNIXtimeWhenOn: 0,
         errorCodeList:[]}}, {upsert:true}, function(err){
