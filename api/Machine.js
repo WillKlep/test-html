@@ -4,6 +4,7 @@ const mongoose = require("mongoose")
 
 const machineSchema = new mongoose.Schema({
 	active: Boolean,
+	cycle: String,
 	type: String,
 	buildingID: Number,
 	machineID: String,
@@ -11,7 +12,6 @@ const machineSchema = new mongoose.Schema({
 	UNIXtimeWhenOff: Number,
 	UNIXtimeWhenOn: Number,
 	UNIXtimeWhenUpdate: Number,
-	UNIXcycleTimeRemaining: Number,
 	errorCodeList: [String],
 	dataArray: []
 },{
