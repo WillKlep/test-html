@@ -94,6 +94,7 @@ function checkWasherState(current, timeWhenOff, currentTime){
 //log the data being obtained by the esp
 router.post("/logLaundryData", function(req,res){
   
+console.log(req.body)
   //first check if espPswd is correct
   if(req.body.espPswd == process.env.ESP_PSWD){
   
