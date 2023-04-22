@@ -366,13 +366,23 @@ router.post("/logESPData", function(req,res){
 
 //obtain and return all esp objects in the DB
 router.get("/getESPData", function(req, res){
+
+  Machine.find({}, "espID machineID dataArray", (err, espList) => {
+    if (err) return handleError(err);
+    
+    res.json(espList)
+
+  })
+
+  /*
+  //using the old espdata table
   espDataCollect.find({}, "uniqueID latestCurrent count", (err, espList) =>{
     if (err) return handleError(err);
     
     res.json(espList)
 
   });
-
+*/
 
 
 })
