@@ -21,18 +21,18 @@ const CONNECTION_ERROR_WAIT_MINUTES = 3
 
 
 //at what current level is the machine considered running
-const DRYER_ACTIVE_THRESHOLD = 1
-const WASHER_ACTIVE_THRESHOLD = 1
+const DRYER_ACTIVE_THRESHOLD = 1000
+const WASHER_ACTIVE_THRESHOLD = 1000
 
 //cycle current ranges
-const WASH_CURRENT_MIN = 9
-const WASH_CURRENT_MAX = 15
+const WASH_CURRENT_MIN = 9000
+const WASH_CURRENT_MAX = 15000
 
-const RINSE_CURRENT_MIN = 7
-const RINSE_CURRENT_MAX = 8
+const RINSE_CURRENT_MIN = 7000
+const RINSE_CURRENT_MAX = 8000
 
-const SPIN_CURRENT_MIN = 7
-const SPIN_CURRENT_MAX = 8
+const SPIN_CURRENT_MIN = 7000
+const SPIN_CURRENT_MAX = 8000
 
 //the start times of each cycle instance
 const RINSE_TIME_ELAPSED = [10, 22]
@@ -94,7 +94,7 @@ function checkWasherState(current, timeWhenOff, currentTime){
 //log the data being obtained by the esp
 router.post("/logLaundryData", function(req,res){
   
-console.log(req.body)
+  console.log(req.body)
   //first check if espPswd is correct
   if(req.body.espPswd == process.env.ESP_PSWD){
   
@@ -337,22 +337,6 @@ router.post("/logESPData", function(req,res){
     "timestamp": timestamp
     })
 
-    /*
-    finds an esp with a specific ID, used mainly for testing
-    espDataCollect.find({uniqueID: espID}, (err, esp) =>{
-      if (err) return handleError(err);
-
-      //testJSON = JSON.parse(esp)
-
-      console.log(JSON.parse(esp[0].dataArray[0]).current)
-      //testJSON = JSON.stringify(esp.dataArray.get(0))
-      //console.log(testJSON.current)
-      
-      res.json(esp)
-  
-    });
-    */
-
   espDataCollect.updateMany({uniqueID: espID}, {$push: {dataArray: espDataJSON}, $set: {latestCurrent: current, count: countNum}}, {upsert:true}, function(err){
     if(err){
             console.log(err);
@@ -374,16 +358,6 @@ router.get("/getESPData", function(req, res){
     res.json(espList)
 
   })
-
-  /*
-  //using the old espdata table
-  espDataCollect.find({}, "uniqueID latestCurrent count", (err, espList) =>{
-    if (err) return handleError(err);
-    
-    res.json(espList)
-
-  });
-*/
 
 
 })
