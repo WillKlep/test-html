@@ -8,22 +8,11 @@ var logger = require('morgan');
 const mongoose = require('mongoose');
 require('dotenv').config()
 
-console.log(process.env.TEST);
-
-
-//const indexRouter = require('./routes/index');
-//const usersRouter = require('./routes/users');
-const catalogRouter = require("./routes/catalog");
-
-//const ajaxUpdater = require("./routes/index");
 const apiRouter = require("./routes/api");
 
 const cors = require('cors');
 
-
-//this could be a secuirty problem. Add a user with read only permission
-    //to the database, setup a password, and store the connect string in a
-    //separate and protected file.
+//connect to db
 mongoose.connect(process.env.DB_CONNECT_URL,
 {
 	useNewUrlParser: true,
@@ -41,8 +30,8 @@ mongoose.connect(process.env.DB_CONNECT_URL,
 var app = express();
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+//app.set('views', path.join(__dirname, 'views'));
+//app.set('view engine', 'ejs');
 
 app.use(cors());
 app.use('/css', express.static(__dirname + '/views/src'));
@@ -54,40 +43,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-//app.use('/', indexRouter);
-app.use("/catalog", catalogRouter);
-//app.use("/index", ajaxUpdater);
 app.use("/api", apiRouter);
-
-
-//var espData = "";
-var machine_id = "";
-var current = "";
-var count = "";
-
-//called by the esp to deliver data
-app.route("/ESPdata").get(function(req,res){
-	req.machine_id = machine_id
-	req.current = current;
-	req.count = count;
-
-
-});
-
-app.route("/data")
-.get(function(req, res){
-	res.render("data");
-	
-//manual page refresh	
-//res.render("data",{quote: espData});
-})
-.post(function(req,res){
-  machine_id = req.body.machine_id;
-	current = req.body.current;
-	count = req.body.count;
-	//returns a response to the sender. Improves ESP send rate. 
-  res.send({response:"JSON Received"});
-})
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -107,6 +63,8 @@ app.use(function(err, req, res, next) {
 
 module.exports = app;
 
+
 app.listen(port, () => {
 	console.log("Serving on port 3000")
 })
+
