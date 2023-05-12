@@ -1,4 +1,4 @@
-//Structure of a washer/dryer object in DB
+//Structure of a machine object in DB
 const mongoose = require("mongoose")
 
 

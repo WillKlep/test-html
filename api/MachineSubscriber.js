@@ -1,4 +1,4 @@
-//Structure of a building object in DB
+//Structure of a machineSubscriber object in DB
 const mongoose = require("mongoose");
 
 const machineSubscriberSchema = new mongoose.Schema({
